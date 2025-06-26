@@ -9,6 +9,12 @@ function createNewPage() {
   const page = document.createElement('div');
   page.className = 'page';
 
+  // Set current margins
+  page.style.paddingTop = document.getElementById('marginTop').value + 'mm';
+  page.style.paddingBottom = document.getElementById('marginBottom').value + 'mm';
+  page.style.paddingLeft = document.getElementById('marginLeft').value + 'mm';
+  page.style.paddingRight = document.getElementById('marginRight').value + 'mm';
+
   const content = document.createElement('div');
   content.className = 'page-content';
 
@@ -16,7 +22,7 @@ function createNewPage() {
   footer.className = 'page-footer';
 
   const footerImg = new Image();
-  footerImg.src = 'Footer.png'; // Use your GitHub path if in subfolder
+  footerImg.src = 'Footer.png';
   footerImg.style.maxHeight = '25px';
   footerImg.style.objectFit = 'contain';
   footer.appendChild(footerImg);
@@ -46,10 +52,9 @@ function addImageToPaper(source, isBase64 = false) {
   };
 }
 
-// Load Header.png from GitHub root folder when page loads
 window.addEventListener('DOMContentLoaded', () => {
   const staticHeader = new Image();
-  staticHeader.src = 'Header.png'; // Use raw URL if in subfolder
+  staticHeader.src = 'Header.png';
   staticHeader.onload = () => {
     addImageToPaper(staticHeader.src, true);
   };
@@ -71,3 +76,18 @@ questionUpload.addEventListener('change', function () {
     addImageToPaper(file);
   });
 });
+
+function applyMargins() {
+  const top = document.getElementById('marginTop').value + 'mm';
+  const bottom = document.getElementById('marginBottom').value + 'mm';
+  const left = document.getElementById('marginLeft').value + 'mm';
+  const right = document.getElementById('marginRight').value + 'mm';
+
+  const pages = document.querySelectorAll('.page');
+  pages.forEach(page => {
+    page.style.paddingTop = top;
+    page.style.paddingBottom = bottom;
+    page.style.paddingLeft = left;
+    page.style.paddingRight = right;
+  });
+}
