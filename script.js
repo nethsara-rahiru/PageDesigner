@@ -23,8 +23,6 @@ function createNewPage() {
   const footerImg = new Image();
   footerImg.src = 'Footer.png';
   footerImg.style.width = '100%';
-  footerImg.style.height = 'auto';
-  footerImg.style.display = 'block';
   footer.appendChild(footerImg);
 
   page.appendChild(content);
@@ -38,8 +36,6 @@ let currentContent = createNewPage();
 function addImageToPaper(source, isBase64 = false) {
   const img = document.createElement('img');
   img.src = isBase64 ? source : URL.createObjectURL(source);
-  img.style.maxWidth = '100%';
-  img.style.height = 'auto';
 
   img.onload = () => {
     currentContent.appendChild(img);
@@ -84,20 +80,8 @@ function applyMargins() {
   });
 }
 
-function updatePageScale() {
-  const pageWidthPx = 793.7; // A4 width in px
-  const toolbarWidth = 280;
-  const availableWidth = window.innerWidth - toolbarWidth - 40; // margin/padding buffer
-  let scale = availableWidth / pageWidthPx;
-  if (scale > 1) scale = 1;
-  if (scale < 0.1) scale = 0.1;
-  document.documentElement.style.setProperty('--page-scale', scale);
-}
-
-window.addEventListener('resize', updatePageScale);
 window.addEventListener('DOMContentLoaded', () => {
   applyMargins();
-  updatePageScale();
 
   // Load default header image on first page
   const staticHeader = new Image();
