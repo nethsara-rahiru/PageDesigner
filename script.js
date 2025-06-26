@@ -9,7 +9,7 @@ function createNewPage() {
   const page = document.createElement('div');
   page.className = 'page';
 
-  // Apply user-defined margins
+  // Apply current margin inputs
   page.style.paddingTop = document.getElementById('marginTop').value + 'mm';
   page.style.paddingBottom = document.getElementById('marginBottom').value + 'mm';
   page.style.paddingLeft = document.getElementById('marginLeft').value + 'mm';
@@ -53,14 +53,6 @@ function addImageToPaper(source, isBase64 = false) {
   };
 }
 
-window.addEventListener('DOMContentLoaded', () => {
-  const staticHeader = new Image();
-  staticHeader.src = 'Header.png';
-  staticHeader.onload = () => {
-    addImageToPaper(staticHeader.src, true);
-  };
-});
-
 headingUpload.addEventListener('change', function () {
   const file = this.files[0];
   if (file) {
@@ -92,3 +84,14 @@ function applyMargins() {
     page.style.paddingRight = right;
   });
 }
+
+// Load header and apply margins when page loads
+window.addEventListener('DOMContentLoaded', () => {
+  applyMargins(); // Apply default margins
+
+  const staticHeader = new Image();
+  staticHeader.src = 'Header.png';
+  staticHeader.onload = () => {
+    addImageToPaper(staticHeader.src, true);
+  };
+});
