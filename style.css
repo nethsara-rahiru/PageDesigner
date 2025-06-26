@@ -1,32 +1,86 @@
 :root {
-  --page-scale: 0.35; /* fallback if JS doesn't run */
+  --page-scale: 0.35;
 }
 
 body {
   margin: 0;
-  padding: 10px;
-  background: #eee;
-  font-family: sans-serif;
+  padding: 0;
+  background: #f2f2f2;
+  font-family: 'Segoe UI', sans-serif;
   overflow: hidden;
 }
 
-.toolbar {
-  text-align: center;
-  margin-bottom: 10px;
-}
-
-.toolbar input, .toolbar button, .toolbar a {
-  margin: 5px;
-  padding: 6px 12px;
-  font-size: 14px;
+.layout {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
 }
 
 #paperContainer {
+  flex: 1;
+  padding: 10px;
+  overflow: auto;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
+  gap: 20px;
+}
+
+.toolbar {
+  width: 260px;
+  background: #ffffff;
+  border-left: 1px solid #ccc;
+  padding: 20px;
+  box-shadow: -2px 0 5px rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  box-sizing: border-box;
+}
+
+.toolbar h2 {
+  margin: 0;
+  font-size: 18px;
+  color: #333;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 10px;
+}
+
+.tool-group {
+  display: flex;
+  flex-direction: column;
   gap: 10px;
-  transform-origin: top left;
+}
+
+.tool-group input[type="file"],
+.tool-group input[type="number"] {
+  width: 100%;
+  padding: 6px;
+  box-sizing: border-box;
+}
+
+.tool-group button {
+  padding: 8px;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.tool-group button:hover {
+  background: #0056b3;
+}
+
+.tool-group a {
+  text-decoration: none;
+  color: #007bff;
+  font-weight: bold;
+}
+
+.tool-group a:hover {
+  text-decoration: underline;
 }
 
 .page {
@@ -34,7 +88,7 @@ body {
   height: 297mm;
   background: white;
   border: 1px solid #ccc;
-  box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.15);
   position: relative;
   overflow: hidden;
   box-sizing: border-box;
@@ -75,8 +129,11 @@ body {
 @media print {
   body {
     background: none;
-    padding: 0;
     overflow: visible;
+  }
+
+  .layout {
+    display: block;
   }
 
   .toolbar {
@@ -85,7 +142,6 @@ body {
 
   #paperContainer {
     transform: none;
-    gap: 0;
   }
 
   .page {
