@@ -3,9 +3,7 @@ const questionUpload = document.getElementById('questionUpload');
 const paperContainer = document.getElementById('paperContainer');
 
 let pageCount = 0;
-const maxHeight = 297 - 40; // page height in mm - 2×20mm padding
 
-// Create a new page
 function createNewPage() {
   pageCount++;
   const page = document.createElement('div');
@@ -16,7 +14,12 @@ function createNewPage() {
 
   const footer = document.createElement('div');
   footer.className = 'page-footer';
-  footer.innerText = `Page ${pageCount} - Prepared by Sir Nethsara`;
+
+  const footerImg = new Image();
+  footerImg.src = 'Footer.png'; // Use your GitHub path if in subfolder
+  footerImg.style.maxHeight = '25px';
+  footerImg.style.objectFit = 'contain';
+  footer.appendChild(footerImg);
 
   page.appendChild(content);
   page.appendChild(footer);
@@ -26,18 +29,16 @@ function createNewPage() {
 
 let currentContent = createNewPage();
 
-function addImageToPaper(file) {
+function addImageToPaper(source, isBase64 = false) {
   const img = document.createElement('img');
-  img.src = URL.createObjectURL(file);
+  img.src = isBase64 ? source : URL.createObjectURL(source);
   img.style.maxWidth = '100%';
   img.style.height = 'auto';
 
   img.onload = () => {
     currentContent.appendChild(img);
-
     const page = currentContent.parentElement;
     if (page.scrollHeight > page.clientHeight) {
-      // Move image to new page if overflows
       currentContent.removeChild(img);
       currentContent = createNewPage();
       currentContent.appendChild(img);
@@ -45,9 +46,24 @@ function addImageToPaper(file) {
   };
 }
 
+// Load Header.png from GitHub root folder when page loads
+window.addEventListener('DOMContentLoaded', () => {
+  const staticHeader = new Image();
+  staticHeader.src = 'Header.png'; // Use raw URL if in subfolder
+  staticHeader.onload = () => {
+    addImageToPaper(staticHeader.src, true);
+  };
+});
+
 headingUpload.addEventListener('change', function () {
   const file = this.files[0];
-  if (file) addImageToPaper(file);
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      addImageToPaper(e.target.result, true);
+    };
+    reader.readAsDataURL(file);
+  }
 });
 
 questionUpload.addEventListener('change', function () {
