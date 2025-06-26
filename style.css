@@ -3,11 +3,7 @@
 }
 
 body, html {
-  margin: 0;
-  padding: 0;
-  height: 100%;
-  width: 100%;
-  overflow: hidden;
+  margin: 0; padding: 0; height: 100vh; width: 100vw; overflow: hidden;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background: #f2f2f2;
 }
@@ -27,6 +23,7 @@ body, html {
   flex-direction: column;
   align-items: center;
   gap: 20px;
+  min-height: 100vh;
 }
 
 .toolbar {
@@ -90,8 +87,8 @@ body, html {
 }
 
 .page {
-  width: 793.7px;   /* 210mm in px at 96dpi */
-  height: 1122.5px; /* 297mm in px at 96dpi */
+  width: 793.7px !important;   /* 210mm at 96dpi */
+  height: 1122.5px !important; /* 297mm at 96dpi */
   background: white;
   border: 1px solid #ccc;
   box-shadow: 0 0 7px rgba(0, 0, 0, 0.15);
@@ -109,7 +106,7 @@ body, html {
   width: 100%;
   height: 100%;
   box-sizing: border-box;
-  padding-bottom: 80px; /* to make room for footer */
+  padding-bottom: 80px; /* room for footer */
 }
 
 .page-footer {
