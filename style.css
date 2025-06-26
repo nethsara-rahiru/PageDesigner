@@ -27,7 +27,6 @@ body, html {
   text-align: center; /* to center pages horizontally */
 }
 
-
 .page {
   width: 210mm;    /* A4 width */
   height: 297mm;   /* A4 height */
@@ -109,14 +108,18 @@ body, html {
   }
 
   .page {
-    page-break-after: always;
+    page-break-after: always;   /* For older browsers */
+    break-after: page;          /* Modern standard */
     box-shadow: none;
     border: none;
-    width: 210mm;
-    height: 297mm;
+    width: 210mm !important;
+    height: 297mm !important;
+    overflow: visible !important;
   }
 
   #paperContainer {
     padding: 0;
+    height: auto !important;
+    overflow: visible !important;
   }
 }
