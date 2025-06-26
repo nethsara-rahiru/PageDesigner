@@ -29,14 +29,14 @@ body, html {
 }
 
 .page {
-  width: 793.7px;     /* 210mm at 96dpi */
-  height: 1122.5px;   /* 297mm at 96dpi */
+  width: 210mm;    /* A4 width */
+  height: 297mm;   /* A4 height */
   background: white;
   box-shadow: 0 0 6px rgba(0,0,0,0.2);
   border: 1px solid #ccc;
   margin-bottom: 20px;
   position: relative;
-  padding-bottom: 60px; /* for footer space */
+  padding-bottom: 60px; /* space for footer */
 }
 
 .page-content {
@@ -112,6 +112,8 @@ body, html {
     page-break-after: always;
     box-shadow: none;
     border: none;
+    width: 210mm;
+    height: 297mm;
   }
 
   #paperContainer {
