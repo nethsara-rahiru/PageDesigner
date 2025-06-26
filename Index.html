@@ -6,22 +6,37 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="toolbar">
-    <input type="file" id="headingUpload" accept="image/*">
-    <input type="file" id="questionUpload" accept="image/*" multiple>
-    <button onclick="window.print()">🖨️ Print</button>
-    <a href="settings.html">⚙️ Settings</a>
+  <div class="layout">
+    <div id="paperContainer"></div>
 
-    <div style="margin-top:10px;">
-      <label>Top: <input type="number" id="marginTop" value="0" style="width: 50px;">mm</label>
-      <label>Bottom: <input type="number" id="marginBottom" value="0" style="width: 50px;">mm</label>
-      <label>Left: <input type="number" id="marginLeft" value="10" style="width: 50px;">mm</label>
-      <label>Right: <input type="number" id="marginRight" value="10" style="width: 50px;">mm</label>
-      <button onclick="applyMargins()">✅ Apply</button>
+    <div class="toolbar">
+      <h2>🛠️ Tools</h2>
+
+      <div class="tool-group">
+        <label>📌 Upload Heading:</label>
+        <input type="file" id="headingUpload" accept="image/*">
+      </div>
+
+      <div class="tool-group">
+        <label>📎 Upload Questions:</label>
+        <input type="file" id="questionUpload" accept="image/*" multiple>
+      </div>
+
+      <div class="tool-group">
+        <label style="display:block;">📐 Margins (mm):</label>
+        <label>Top: <input type="number" id="marginTop" value="0"></label>
+        <label>Bottom: <input type="number" id="marginBottom" value="0"></label>
+        <label>Left: <input type="number" id="marginLeft" value="10"></label>
+        <label>Right: <input type="number" id="marginRight" value="10"></label>
+        <button onclick="applyMargins()">Apply Margins</button>
+      </div>
+
+      <div class="tool-group">
+        <button onclick="window.print()">🖨️ Print</button>
+        <a href="settings.html">⚙️ Settings</a>
+      </div>
     </div>
   </div>
-
-  <div id="paperContainer"></div>
 
   <script src="script.js"></script>
 </body>
