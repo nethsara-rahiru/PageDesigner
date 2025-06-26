@@ -1,8 +1,13 @@
+:root {
+  --page-scale: 0.35; /* fallback if JS doesn't run */
+}
+
 body {
   margin: 0;
-  padding: 20px;
+  padding: 10px;
   background: #eee;
   font-family: sans-serif;
+  overflow: hidden;
 }
 
 .toolbar {
@@ -19,19 +24,22 @@ body {
 #paperContainer {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 20px;
+  align-items: flex-start;
+  gap: 10px;
+  transform-origin: top left;
 }
 
 .page {
   width: 210mm;
   height: 297mm;
   background: white;
-  box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
   border: 1px solid #ccc;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
   position: relative;
   overflow: hidden;
   box-sizing: border-box;
+  transform-origin: top left;
+  transform: scale(var(--page-scale));
 }
 
 .page-content {
@@ -54,7 +62,7 @@ body {
 }
 
 .page-footer img {
-  width: 80%;
+  width: 100%;
   height: auto;
   display: block;
 }
@@ -68,6 +76,7 @@ body {
   body {
     background: none;
     padding: 0;
+    overflow: visible;
   }
 
   .toolbar {
@@ -75,10 +84,12 @@ body {
   }
 
   #paperContainer {
+    transform: none;
     gap: 0;
   }
 
   .page {
+    transform: none;
     box-shadow: none;
     border: none;
     page-break-after: always;
