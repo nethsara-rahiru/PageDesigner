@@ -85,9 +85,10 @@ function applyMargins() {
 }
 
 function updatePageScale() {
-  const pageHeightPx = 1122.5; // 297mm at 96dpi
-  const availableHeight = window.innerHeight - 40; // margin for toolbar/padding
-  let scale = availableHeight / pageHeightPx;
+  const pageWidthPx = 793.7; // A4 width in px
+  const toolbarWidth = 280;
+  const availableWidth = window.innerWidth - toolbarWidth - 40; // margin/padding buffer
+  let scale = availableWidth / pageWidthPx;
   if (scale > 1) scale = 1;
   if (scale < 0.1) scale = 0.1;
   document.documentElement.style.setProperty('--page-scale', scale);
