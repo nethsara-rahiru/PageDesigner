@@ -85,10 +85,11 @@ function applyMargins() {
 }
 
 function updatePageScale() {
-  const pageHeightPx = 1122.5; // 297mm = 1122.5px at 96dpi
-  const availableHeight = window.innerHeight - 20;
+  const pageHeightPx = 1122.5; // 297mm in px at 96dpi
+  const availableHeight = window.innerHeight - 20; // some padding
   const scale = availableHeight / pageHeightPx;
-  document.documentElement.style.setProperty('--page-scale', scale);
+  // Keep scale max 1 (don’t upscale)
+  document.documentElement.style.setProperty('--page-scale', scale > 1 ? 1 : scale);
 }
 
 window.addEventListener('resize', updatePageScale);
