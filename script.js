@@ -85,11 +85,12 @@ function applyMargins() {
 }
 
 function updatePageScale() {
-  const pageHeightPx = 1122.5; // 297mm in px at 96dpi
-  const availableHeight = window.innerHeight - 20; // some padding
-  const scale = availableHeight / pageHeightPx;
-  // Keep scale max 1 (don’t upscale)
-  document.documentElement.style.setProperty('--page-scale', scale > 1 ? 1 : scale);
+  const pageHeightPx = 1122.5; // 297mm at 96dpi
+  const availableHeight = window.innerHeight - 40; // margin for toolbar/padding
+  let scale = availableHeight / pageHeightPx;
+  if (scale > 1) scale = 1;
+  if (scale < 0.1) scale = 0.1;
+  document.documentElement.style.setProperty('--page-scale', scale);
 }
 
 window.addEventListener('resize', updatePageScale);
@@ -97,6 +98,7 @@ window.addEventListener('DOMContentLoaded', () => {
   applyMargins();
   updatePageScale();
 
+  // Load default header image on first page
   const staticHeader = new Image();
   staticHeader.src = 'Header.png';
   staticHeader.onload = () => {
