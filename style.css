@@ -1,11 +1,14 @@
-:root {
-  --page-scale: 0.35;
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 body, html {
-  margin: 0; padding: 0; height: 100vh; width: 100vw; overflow: hidden;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: #f2f2f2;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  font-family: sans-serif;
 }
 
 .layout {
@@ -16,97 +19,33 @@ body, html {
 
 #paperContainer {
   flex-grow: 1;
+  height: 100vh;
   overflow-y: auto;
-  overflow-x: hidden;
-  padding: 10px;
-  background-color: #fafafa;
-  display: block;      /* Important: block so pages stack vertically */
-  max-height: 100vh;
-  box-sizing: border-box;
-  text-align: center;  /* center pages horizontally */
-}
-
-.toolbar {
-  width: 280px;
-  background: #fff;
-  box-shadow: -3px 0 7px rgba(0,0,0,0.1);
+  background: #eee;
   padding: 20px;
-  box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  overflow-y: auto;
-}
-
-.toolbar h2 {
-  margin: 0 0 10px 0;
-  font-weight: 600;
-  color: #333;
-  border-bottom: 1px solid #ddd;
-  padding-bottom: 10px;
-}
-
-.tool-group label {
-  display: block;
-  margin-bottom: 5px;
-  font-weight: 500;
-  color: #444;
-}
-
-.tool-group input[type="file"],
-.tool-group input[type="number"] {
-  width: 100%;
-  padding: 6px;
-  box-sizing: border-box;
-  margin-bottom: 10px;
-}
-
-.tool-group button {
-  padding: 10px;
-  background-color: #007bff;
-  border: none;
-  border-radius: 5px;
-  color: white;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.tool-group button:hover {
-  background-color: #0056b3;
-}
-
-.tool-group a {
-  color: #007bff;
-  text-decoration: none;
-  font-weight: 600;
-}
-
-.tool-group a:hover {
-  text-decoration: underline;
+  align-items: center;
 }
 
 .page {
-  display: inline-block; /* stack vertically, center horizontally */
-  margin: 10px auto;
-  width: 793.7px !important;   /* fixed A4 width */
-  height: 1122.5px !important; /* fixed A4 height */
+  width: 793.7px;     /* 210mm at 96dpi */
+  height: 1122.5px;   /* 297mm at 96dpi */
   background: white;
+  box-shadow: 0 0 6px rgba(0,0,0,0.2);
   border: 1px solid #ccc;
-  box-shadow: 0 0 7px rgba(0, 0, 0, 0.15);
-  box-sizing: border-box;
-  transform-origin: top left;
-  transform: scale(var(--page-scale));
+  margin-bottom: 20px;
+  position: relative;
+  padding-bottom: 60px; /* for footer space */
 }
 
 .page-content {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  padding: 0;
   width: 100%;
   height: 100%;
-  box-sizing: border-box;
-  padding-bottom: 80px; /* space for footer */
 }
 
 .page-footer {
@@ -114,9 +53,6 @@ body, html {
   bottom: 0;
   left: 0;
   width: 100%;
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
 }
 
 .page-footer img {
@@ -130,9 +66,37 @@ body, html {
   height: auto;
 }
 
+.toolbar {
+  width: 280px;
+  background: white;
+  border-left: 1px solid #ccc;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.toolbar h2 {
+  margin-bottom: 10px;
+  font-size: 18px;
+}
+
+.tool-group {
+  margin-bottom: 20px;
+}
+
+.tool-group label {
+  display: block;
+  margin-bottom: 5px;
+}
+
+.tool-group input,
+.tool-group button {
+  width: 100%;
+  margin-top: 5px;
+  padding: 8px;
+}
+
 @media print {
-  body {
-    background: none;
+  body, html {
     overflow: visible;
   }
 
@@ -144,14 +108,13 @@ body, html {
     display: none;
   }
 
-  #paperContainer {
-    transform: none !important;
+  .page {
+    page-break-after: always;
+    box-shadow: none;
+    border: none;
   }
 
-  .page {
-    transform: none !important;
-    box-shadow: none !important;
-    border: none !important;
-    page-break-after: always;
+  #paperContainer {
+    padding: 0;
   }
 }
