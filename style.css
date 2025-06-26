@@ -16,14 +16,14 @@ body, html {
 
 #paperContainer {
   flex-grow: 1;
-  overflow: auto;
+  overflow-y: auto;
+  overflow-x: hidden;
   padding: 10px;
   background-color: #fafafa;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 20px;
-  min-height: 100vh;
+  display: block;      /* Important: block so pages stack vertically */
+  max-height: 100vh;
+  box-sizing: border-box;
+  text-align: center;  /* center pages horizontally */
 }
 
 .toolbar {
@@ -87,13 +87,13 @@ body, html {
 }
 
 .page {
-  width: 793.7px !important;   /* 210mm at 96dpi */
-  height: 1122.5px !important; /* 297mm at 96dpi */
+  display: inline-block; /* stack vertically, center horizontally */
+  margin: 10px auto;
+  width: 793.7px !important;   /* fixed A4 width */
+  height: 1122.5px !important; /* fixed A4 height */
   background: white;
   border: 1px solid #ccc;
   box-shadow: 0 0 7px rgba(0, 0, 0, 0.15);
-  position: relative;
-  overflow: hidden;
   box-sizing: border-box;
   transform-origin: top left;
   transform: scale(var(--page-scale));
@@ -106,7 +106,7 @@ body, html {
   width: 100%;
   height: 100%;
   box-sizing: border-box;
-  padding-bottom: 80px; /* room for footer */
+  padding-bottom: 80px; /* space for footer */
 }
 
 .page-footer {
