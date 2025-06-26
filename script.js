@@ -85,8 +85,7 @@ function applyMargins() {
 }
 
 function updatePageScale() {
-  const pageHeightPx = 297 * 3.7795; // A4 height in px at 96dpi
-  const toolbarHeight = document.querySelector('.toolbar').offsetHeight;
+  const pageHeightPx = 1122.5; // 297mm = 1122.5px at 96dpi
   const availableHeight = window.innerHeight - 20;
   const scale = availableHeight / pageHeightPx;
   document.documentElement.style.setProperty('--page-scale', scale);
