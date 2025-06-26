@@ -9,7 +9,7 @@ function createNewPage() {
   const page = document.createElement('div');
   page.className = 'page';
 
-  // Set current margins
+  // Apply user-defined margins
   page.style.paddingTop = document.getElementById('marginTop').value + 'mm';
   page.style.paddingBottom = document.getElementById('marginBottom').value + 'mm';
   page.style.paddingLeft = document.getElementById('marginLeft').value + 'mm';
@@ -23,8 +23,9 @@ function createNewPage() {
 
   const footerImg = new Image();
   footerImg.src = 'Footer.png';
-  footerImg.style.maxHeight = '25px';
-  footerImg.style.objectFit = 'contain';
+  footerImg.style.width = '100%';
+  footerImg.style.height = 'auto';
+  footerImg.style.display = 'block';
   footer.appendChild(footerImg);
 
   page.appendChild(content);
