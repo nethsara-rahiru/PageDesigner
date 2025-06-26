@@ -9,7 +9,6 @@ function createNewPage() {
   const page = document.createElement('div');
   page.className = 'page';
 
-  // Apply current margin inputs
   page.style.paddingTop = document.getElementById('marginTop').value + 'mm';
   page.style.paddingBottom = document.getElementById('marginBottom').value + 'mm';
   page.style.paddingLeft = document.getElementById('marginLeft').value + 'mm';
@@ -85,9 +84,19 @@ function applyMargins() {
   });
 }
 
-// Load header and apply margins when page loads
+// Scale page to fit screen height
+function updatePageScale() {
+  const pageHeightPx = 297 * 3.7795; // A4 height in px at 96dpi
+  const toolbarHeight = document.querySelector('.toolbar').offsetHeight;
+  const availableHeight = window.innerHeight - toolbarHeight - 20;
+  const scale = availableHeight / pageHeightPx;
+  document.documentElement.style.setProperty('--page-scale', scale);
+}
+
+window.addEventListener('resize', updatePageScale);
 window.addEventListener('DOMContentLoaded', () => {
   applyMargins(); // Apply default margins
+  updatePageScale(); // Fit to screen
 
   const staticHeader = new Image();
   staticHeader.src = 'Header.png';
