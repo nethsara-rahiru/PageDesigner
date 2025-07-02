@@ -23,8 +23,8 @@ body, html {
   overflow-y: auto;
   background: #eee;
   padding: 20px;
-  display: block;    /* no flex here */
-  text-align: center; /* to center pages horizontally */
+  display: block;
+  text-align: center;
 }
 
 .page {
@@ -35,16 +35,17 @@ body, html {
   border: 1px solid #ccc;
   margin-bottom: 20px;
   position: relative;
-  padding-bottom: 60px; /* space for footer */
+  padding-bottom: 60px;
 }
 
 .page-content {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding: 0;
+  padding: 0 0 70px 0;
   width: 100%;
   height: 100%;
+  box-sizing: border-box;
 }
 
 .page-footer {
@@ -94,32 +95,123 @@ body, html {
   padding: 8px;
 }
 
+/* Editable text boxes */
+.text-box {
+  position: absolute;
+  min-width: 100px;
+  padding: 4px 8px;
+  font-size: 14px;
+  background: #fffacd;
+  border: 1px solid #ccc;
+  cursor: text;
+  resize: both;
+  overflow: auto;
+  z-index: 10;
+}
+
+/* ✨ Hints styling */
+.hint-box {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #fff8c4;
+  color: #333;
+  border: 1px solid #ccc;
+  padding: 10px 20px;
+  font-size: 16px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  z-index: 9999;
+  animation: fadeOut 3s ease-out forwards;
+}
+
+@keyframes fadeOut {
+  0%   { opacity: 1; }
+  70%  { opacity: 1; }
+  100% { opacity: 0; display: none; }
+}
+
+#textTools h3 {
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+
+#textTools input[type="color"] {
+  height: 36px;
+  padding: 0;
+}
+
+/* ✅ Print styling */
 @media print {
-  body, html {
+  @page {
+    size: A4;
+    margin: 0;
+  }
+
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  html, body {
+    height: auto;
     overflow: visible;
+    background: white;
   }
 
   .layout {
     display: block;
   }
 
-  .toolbar {
-    display: none;
-  }
-
-  .page {
-    page-break-after: always;   /* For older browsers */
-    break-after: page;          /* Modern standard */
-    box-shadow: none;
-    border: none;
-    width: 210mm !important;
-    height: 297mm !important;
-    overflow: visible !important;
+  .toolbar,
+  .hint-box {
+    display: none !important;
   }
 
   #paperContainer {
     padding: 0;
     height: auto !important;
     overflow: visible !important;
+    background: white;
   }
+
+  .page {
+    page-break-after: always;
+    break-after: page;
+    box-shadow: none;
+    border: none;
+    width: 210mm;
+    height: 297mm;
+    margin: 0 auto;
+    position: relative;
+  }
+
+  .page-content {
+    padding: 0;
+  }
+
+  .text-box {
+    background: none;
+    border: none;
+    color: black;
+    resize: none;
+    overflow: visible;
+  }
+    
+  @media print {
+  /* ...existing print styles... */
+
+  .text-box {
+    background: transparent !important;  /* no background color */
+    border: none !important;              /* no border */
+    box-shadow: none !important;          /* no shadow */
+    resize: none !important;               /* disable resizing UI */
+    overflow: visible !important;
+    color: black !important;               /* black text for print */
+    cursor: default !important;            /* normal cursor */
+    box-sizing: border-box !important;
+  }
+}
+
 }

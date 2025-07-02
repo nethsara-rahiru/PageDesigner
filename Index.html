@@ -7,36 +7,72 @@
 </head>
 <body>
   <div class="layout">
+    <!-- Left: Paper container to hold A4 pages -->
     <div id="paperContainer"></div>
 
+    <!-- Right: Toolbar container -->
     <div class="toolbar">
-      <h2>🛠️ Tools</h2>
-
-      <div class="tool-group">
-        <label>📌 Upload Heading:</label>
-        <input type="file" id="headingUpload" accept="image/*" />
+      <div id="mainTools">
+        <!-- Existing tools -->
+        <div class="tool-group">
+          <label>📌 Upload Heading:</label>
+          <input type="file" id="headingUpload" accept="image/*" />
+        </div>
+        <div class="tool-group">
+          <label>📎 Upload Questions:</label>
+          <input type="file" id="questionUpload" accept="image/*" multiple />
+        </div>
+        <div class="tool-group">
+          <label>📐 Margins (mm):</label>
+          <label>Top: <input type="number" id="marginTop" value="0" /></label>
+          <label>Bottom: <input type="number" id="marginBottom" value="0" /></label>
+          <label>Left: <input type="number" id="marginLeft" value="10" /></label>
+          <label>Right: <input type="number" id="marginRight" value="10" /></label>
+          <button onclick="applyMargins()">Apply Margins</button>
+        </div>
+        <div class="tool-group">
+          <button onclick="activateTextMode()">➕ Add Text</button>
+        </div>
+        <div class="tool-group">
+          <button onclick="window.print()">🖨️ Print</button>
+        </div>
       </div>
 
-      <div class="tool-group">
-        <label>📎 Upload Questions:</label>
-        <input type="file" id="questionUpload" accept="image/*" multiple />
-      </div>
+      <div id="textTools" style="display:none;">
+  <h3>✏️ Text Settings</h3>
 
-      <div class="tool-group">
-        <label>📐 Margins (mm):</label>
-        <label>Top: <input type="number" id="marginTop" value="0" /></label>
-        <label>Bottom: <input type="number" id="marginBottom" value="0" /></label>
-        <label>Left: <input type="number" id="marginLeft" value="10" /></label>
-        <label>Right: <input type="number" id="marginRight" value="10" /></label>
-        <button onclick="applyMargins()">Apply Margins</button>
-      </div>
+  <div class="tool-group">
+    <label>X (mm): <input type="number" id="textPosX" step="1" /></label>
+  </div>
+  <div class="tool-group">
+    <label>Y (mm): <input type="number" id="textPosY" step="1" /></label>
+  </div>
+  <div class="tool-group">
+    <label>Font Size: <input type="number" id="textFontSize" value="14" /></label>
+  </div>
+  <div class="tool-group">
+    <label>Color: <input type="color" id="textColor" value="#000000" /></label>
+  </div>
+  <div class="tool-group">
+    <label><input type="checkbox" id="textBold" /> Bold</label>
+  </div>
+  <div class="tool-group">
+    <button onclick="deleteSelectedText()">🗑️ Delete Text</button>
+  </div>
+  <div class="tool-group">
+    <button onclick="closeTextTools()">✖️ Close Text Edit</button>
+  </div>
+</div>
 
-      <div class="tool-group">
-        <button onclick="window.print()">🖨️ Print</button>
       </div>
     </div>
   </div>
 
+    <div id="textHint" class="hint-box" style="display: none;">
+      📌 Click on a page to place your text.
+    </div>
+
+    
   <script src="script.js"></script>
 </body>
 </html>
