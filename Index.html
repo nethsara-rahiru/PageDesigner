@@ -15,7 +15,7 @@
       <div id="mainTools">
         <!-- Existing tools -->
         <div class="tool-group">
-          <label>📌 Upload Heading:</label>
+          <label id="header">📌 Upload Heading:</label>
           <input type="file" id="headingUpload" accept="image/*" />
         </div>
         <div class="tool-group">
@@ -46,6 +46,12 @@
   </div>
   <div class="tool-group">
     <label>Y (mm): <input type="number" id="textPosY" step="1" /></label>
+  </div>
+  <div class="tool-group">
+      <label>Background Color:
+        <input type="color" id="bgColorPicker" />
+      </label>
+      <label><input type="checkbox" id="bgTransparent" /> Transparent</label>
   </div>
   <div class="tool-group">
     <label>Font Size: <input type="number" id="textFontSize" value="14" /></label>

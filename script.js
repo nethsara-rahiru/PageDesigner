@@ -2,18 +2,7 @@ const headingUpload = document.getElementById('headingUpload');
 const questionUpload = document.getElementById('questionUpload');
 const paperContainer = document.getElementById('paperContainer');
 
-const mainTools = document.getElementById('mainTools');
-const textTools = document.getElementById('textTools');
-const textPosX = document.getElementById('textPosX');
-const textPosY = document.getElementById('textPosY');
-const textFontSize = document.getElementById('textFontSize');
-const textColor = document.getElementById('textColor');
-const textBold = document.getElementById('textBold');
-
 let pageCount = 0;
-let currentContent = null;
-let textModeActive = false;
-let selectedTextBox = null;
 
 function createNewPage() {
   pageCount++;
@@ -41,6 +30,8 @@ function createNewPage() {
   paperContainer.appendChild(page);
   return content;
 }
+
+let currentContent = createNewPage();
 
 function addImageToPaper(source, isBase64 = false) {
   const img = document.createElement('img');
@@ -91,8 +82,8 @@ function applyMargins() {
 
 window.addEventListener('DOMContentLoaded', () => {
   applyMargins();
-  currentContent = createNewPage();
 
+  // Load default header image on first page
   const staticHeader = new Image();
   staticHeader.src = 'Header.png';
   staticHeader.onload = () => {
@@ -100,41 +91,220 @@ window.addEventListener('DOMContentLoaded', () => {
   };
 });
 
-// --------- TEXT MODE ----------
+let textModeActive = false;
+let selectedTextBox = null;
 
 function activateTextMode() {
   textModeActive = true;
-  const hint = document.getElementById('textHint');
-  hint.style.display = 'block';
-  hint.style.animation = 'none';
-  void hint.offsetWidth;
-  hint.style.animation = 'fadeOut 3s ease-out forwards';
+  showHint("Click on a page to place your text.");
 }
 
-function openTextTools(textBox) {
-  selectedTextBox = textBox;
-  mainTools.style.display = 'none';
-  textTools.style.display = 'block';
+function showHint(message) {
+  const hint = document.createElement('div');
+  hint.className = 'hint-box';
+  hint.innerText = message;
+  document.body.appendChild(hint);
+  setTimeout(() => hint.remove(), 3000);
+}
 
-  const leftPx = parseFloat(textBox.style.left || 0);
-  const topPx = parseFloat(textBox.style.top || 0);
-  const pxToMm = px => (px * 25.4 / 96);
+document.addEventListener('click', function (e) {
+  if (!textModeActive) return;
 
-  textPosX.value = pxToMm(leftPx).toFixed(1);
-  textPosY.value = pxToMm(topPx).toFixed(1);
-  textFontSize.value = parseInt(textBox.style.fontSize) || 14;
-  textColor.value = rgbToHex(textBox.style.color || "#000000");
-  textBold.checked = textBox.style.fontWeight === "bold";
+  // Ignore clicks inside toolbar, textTools, or existing text boxes
+  if (
+    e.target.closest('.toolbar') || 
+    e.target.closest('#textTools') || 
+    e.target.closest('.text-box')
+  ) return;
+
+  const clickedPage = e.target.closest('.page');
+  if (!clickedPage) return;
+
+  const textBox = document.createElement('div');
+  textBox.className = 'text-box';
+  textBox.contentEditable = true;
+  textBox.innerText = 'Type here...';
+
+  const rect = clickedPage.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+
+  textBox.style.left = `${x}px`;
+  textBox.style.top = `${y}px`;
+
+  clickedPage.appendChild(textBox);
 
   textBox.focus();
+
+  makeTextBoxDraggable(textBox);
+  setupTextSettings(textBox);
+  showTextSettings();
+
+  selectedTextBox = textBox;
+  textModeActive = false;
+
+  // Also add click listener so selecting a box updates the toolbar
+  textBox.addEventListener('click', (ev) => {
+    ev.stopPropagation(); // prevent triggering page click
+    selectedTextBox = textBox;
+    setupTextSettings(textBox);
+    showTextSettings();
+  });
+});
+
+function makeTextBoxDraggable(textBox) {
+  let isDragging = false;
+  let offsetX, offsetY;
+
+  textBox.addEventListener('mousedown', (e) => {
+    const rect = textBox.getBoundingClientRect();
+    const resizeZone = 16;
+
+    // Allow native resize if cursor is in resize corner area
+    if (
+      e.clientX > rect.right - resizeZone &&
+      e.clientY > rect.bottom - resizeZone
+    ) {
+      return; // skip drag, allow native resize
+    }
+
+    isDragging = true;
+    offsetX = e.clientX - textBox.offsetLeft;
+    offsetY = e.clientY - textBox.offsetTop;
+
+    // Prevent text selection while dragging
+    e.preventDefault();
+  });
+
+  const parent = textBox.parentElement;
+
+  function onMouseMove(e) {
+    if (!isDragging) return;
+
+    const newX = e.clientX - offsetX;
+    const newY = e.clientY - offsetY;
+
+    const maxX = parent.clientWidth - textBox.offsetWidth;
+    const maxY = parent.clientHeight - textBox.offsetHeight;
+
+    textBox.style.left = `${Math.min(Math.max(0, newX), maxX)}px`;
+    textBox.style.top = `${Math.min(Math.max(0, newY), maxY)}px`;
+
+    updateSettingsInputs(textBox);
+  }
+
+  function onMouseUp() {
+    isDragging = false;
+  }
+
+  textBox.addEventListener('mouseup', onMouseUp);
+  parent.addEventListener('mousemove', onMouseMove);
+}
+
+function setupTextSettings(textBox) {
+  const xInput = document.getElementById('textPosX');
+  const yInput = document.getElementById('textPosY');
+  const fontSizeInput = document.getElementById('textFontSize');
+  const colorInput = document.getElementById('textColor');
+  const bgColorPicker = document.getElementById('bgColorPicker');
+  const bgTransparent = document.getElementById('bgTransparent');
+  const boldCheckbox = document.getElementById('textBold');
+  const deleteBtn = document.querySelector('button[onclick="deleteSelectedText()"]') || document.getElementById('deleteText');
+
+  // Defensive: if button missing, fallback
+  if (!deleteBtn) {
+    console.warn('Delete button not found');
+  }
+
+  function updateInputs() {
+    xInput.value = parseInt(textBox.style.left) || 0;
+    yInput.value = parseInt(textBox.style.top) || 0;
+    fontSizeInput.value = parseInt(window.getComputedStyle(textBox).fontSize) || 14;
+    colorInput.value = rgbToHex(window.getComputedStyle(textBox).color) || '#000000';
+
+    const bgColor = window.getComputedStyle(textBox).backgroundColor;
+    if (bgColor === 'rgba(0, 0, 0, 0)') {
+      bgTransparent.checked = true;
+      bgColorPicker.value = '#ffffff';
+    } else {
+      bgTransparent.checked = false;
+      bgColorPicker.value = rgbToHex(bgColor);
+    }
+    const weight = window.getComputedStyle(textBox).fontWeight;
+    boldCheckbox.checked = (weight === '700' || weight === 'bold');
+  }
+
+  updateInputs();
+
+  xInput.oninput = () => {
+    textBox.style.left = xInput.value + 'px';
+  };
+  yInput.oninput = () => {
+    textBox.style.top = yInput.value + 'px';
+  };
+  fontSizeInput.oninput = () => {
+    textBox.style.fontSize = fontSizeInput.value + 'px';
+  };
+  colorInput.oninput = () => {
+    textBox.style.color = colorInput.value;
+  };
+  bgColorPicker.oninput = () => {
+    if (!bgTransparent.checked) {
+      textBox.style.backgroundColor = bgColorPicker.value;
+    }
+  };
+  bgTransparent.onchange = () => {
+    if (bgTransparent.checked) {
+      textBox.style.backgroundColor = 'transparent';
+    } else {
+      textBox.style.backgroundColor = bgColorPicker.value;
+    }
+  };
+  boldCheckbox.onchange = () => {
+    textBox.style.fontWeight = boldCheckbox.checked ? 'bold' : 'normal';
+  };
+  deleteBtn.onclick = () => {
+    if (selectedTextBox) {
+      selectedTextBox.remove();
+      selectedTextBox = null;
+      closeTextTools();
+    }
+  };
+}
+
+function updateSettingsInputs(textBox) {
+  if (!selectedTextBox) return;
+  const xInput = document.getElementById('textPosX');
+  const yInput = document.getElementById('textPosY');
+  xInput.value = parseInt(selectedTextBox.style.left) || 0;
+  yInput.value = parseInt(selectedTextBox.style.top) || 0;
+}
+
+function showTextSettings() {
+  document.getElementById('mainTools').style.display = 'none';
+  document.getElementById('textTools').style.display = 'block';
 }
 
 function closeTextTools() {
+  document.getElementById('mainTools').style.display = 'block';
+  document.getElementById('textTools').style.display = 'none';
   selectedTextBox = null;
-  mainTools.style.display = 'block';
-  textTools.style.display = 'none';
 }
 
+function rgbToHex(rgb) {
+  if (!rgb) return '#ffffff';
+  const result = rgb.match(/\d+/g);
+  if (!result) return '#ffffff';
+  return (
+    '#' +
+    result
+      .slice(0, 3)
+      .map(x => ('0' + parseInt(x).toString(16)).slice(-2))
+      .join('')
+  );
+}
+
+// Optional: function to delete selected text box, called from button in HTML
 function deleteSelectedText() {
   if (selectedTextBox) {
     selectedTextBox.remove();
@@ -142,98 +312,3 @@ function deleteSelectedText() {
     closeTextTools();
   }
 }
-
-textPosX.addEventListener('input', () => {
-  if (!selectedTextBox) return;
-  const mmToPx = mm => mm * 96 / 25.4;
-  selectedTextBox.style.left = mmToPx(parseFloat(textPosX.value)) + 'px';
-});
-
-textPosY.addEventListener('input', () => {
-  if (!selectedTextBox) return;
-  const mmToPx = mm => mm * 96 / 25.4;
-  selectedTextBox.style.top = mmToPx(parseFloat(textPosY.value)) + 'px';
-});
-
-textFontSize.addEventListener('input', () => {
-  if (selectedTextBox) {
-    selectedTextBox.style.fontSize = textFontSize.value + 'px';
-  }
-});
-
-textColor.addEventListener('input', () => {
-  if (selectedTextBox) {
-    selectedTextBox.style.color = textColor.value;
-  }
-});
-
-textBold.addEventListener('change', () => {
-  if (selectedTextBox) {
-    selectedTextBox.style.fontWeight = textBold.checked ? 'bold' : 'normal';
-  }
-});
-
-function rgbToHex(rgb) {
-  const result = rgb.match(/\d+/g);
-  if (!result) return '#000000';
-  return (
-    '#' +
-    result
-      .slice(0, 3)
-      .map(x => parseInt(x).toString(16).padStart(2, '0'))
-      .join('')
-  );
-}
-
-// ---------- EVENT HANDLING ----------
-
-// Place text
-document.addEventListener('click', function (e) {
-  if (textModeActive) {
-    const clickedPage = e.target.closest('.page');
-    if (!clickedPage) return;
-
-    const rect = clickedPage.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-
-    const textBox = document.createElement('div');
-    textBox.className = 'text-box';
-    textBox.contentEditable = true;
-    textBox.innerText = 'Type here...';
-    textBox.style.left = `${x}px`;
-    textBox.style.top = `${y}px`;
-    textBox.style.position = 'absolute';
-    textBox.style.minWidth = '100px';
-    textBox.style.fontSize = '14px';
-    textBox.style.color = '#000000';
-    textBox.style.padding = '4px 8px';
-    textBox.style.background = '#fffacd';
-    textBox.style.border = '1px solid #ccc';
-    textBox.style.cursor = 'text';
-    textBox.style.resize = 'both';
-    textBox.style.overflow = 'auto';
-
-    clickedPage.appendChild(textBox);
-    textModeActive = false;
-    return;
-  }
-});
-
-// Prevent closing tools when clicking inside
-document.addEventListener('mousedown', function (e) {
-  if (textModeActive) return;
-
-  if (e.target.classList.contains('text-box')) {
-    openTextTools(e.target);
-    return;
-  }
-
-  if (e.target.closest('.toolbar')) {
-    return;
-  }
-
-  if (selectedTextBox) {
-    closeTextTools();
-  }
-});
