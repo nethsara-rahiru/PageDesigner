@@ -22,7 +22,6 @@ body {
   padding: 0;
 }
 
-
 .layout {
   display: flex;
   height: 100vh;
@@ -151,7 +150,7 @@ body {
   min-height: 10px;
   width: 200px;
   height: 60px;
-  padding: 4px 8px;
+  padding: 0px;
   font-size: 14px;
   background: #fffacd;
   border: 1px solid #ccc;
@@ -241,6 +240,15 @@ body {
     position: relative;
   }
 
+    
+  .page-content img {
+      max-width: 100%;
+      max-height: calc(297mm - headerHeight - footerHeight - paddingTop - paddingBottom);
+      height: auto;
+      display: block;
+      margin: 0 auto;
+    }
+    
   .page-content {
     padding: 0;
   }
@@ -250,5 +258,20 @@ body {
     box-shadow: none !important;
     background-color: transparent !important;
     color: black !important;
+    resize: none !important;
+    overflow: visible !important;
+  }
+  
+  .page-number-box {
+    background-color: white !important;
+    box-shadow: none !important;
+    border: none !important;
+    resize: none !important;  /* disable resizing */
+    overflow: visible !important; /* ensure no scrollbars */
+    pointer-events: none !important;
+    user-select: none !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    appearance: none !important;
   }
 }
