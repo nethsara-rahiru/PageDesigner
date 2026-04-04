@@ -1,3 +1,4 @@
+/* Nethsara Rahiru */
 :root {
   --primary: #6366f1;
   --primary-hover: #4f46e5;
@@ -24,7 +25,8 @@
   box-sizing: border-box;
 }
 
-html, body {
+html,
+body {
   height: 100vh;
   width: 100vw;
   overflow: hidden;
@@ -49,15 +51,18 @@ html, body {
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 2rem; /* Increased gap */
+  gap: 2rem;
+  /* Increased gap */
   z-index: 100;
   box-shadow: var(--shadow-lg);
 }
 
-#mainTools, #textTools {
+#mainTools,
+#textTools {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem; /* Gap between individual tool groups */
+  gap: 1.5rem;
+  /* Gap between individual tool groups */
 }
 
 .toolbar h2 {
@@ -185,19 +190,21 @@ button.danger:hover {
   color: #1e293b;
   transform-origin: top center;
   transition: transform 0.3s ease;
-  font-family: 'Times New Roman', Times, serif; /* Global academic font */
+  font-family: 'Times New Roman', Times, serif;
+  /* Global academic font */
 }
 
 .inserted-image.dragging {
   opacity: 0.5;
   transform: scale(0.98);
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
 .page-content {
   flex: 1;
   position: relative;
-  padding: 10mm 10mm 25mm 10mm; /* Extra bottom padding (25mm) for footer safety */
+  padding: 10mm 10mm 25mm 10mm;
+  /* Extra bottom padding (25mm) for footer safety */
   overflow: visible;
 }
 
@@ -233,7 +240,8 @@ button.danger:hover {
   min-height: 20px;
   padding: 10px;
   border: 1px dashed transparent;
-  border-top: 2px solid #000; /* Distinct top border for questions */
+  border-top: 2px solid #000;
+  /* Distinct top border for questions */
   transition: all 0.2s;
   cursor: text;
   outline: none;
@@ -268,9 +276,10 @@ button.danger:hover {
   outline: none;
   white-space: pre-wrap;
   word-break: break-word;
-  resize: none; /* Removed native handle lines */
+  resize: none;
+  /* Removed native handle lines */
   overflow: visible;
-  box-sizing: border-box; 
+  box-sizing: border-box;
 }
 
 .text-box:hover {
@@ -336,8 +345,15 @@ button.danger:hover {
 }
 
 @keyframes slideUp {
-  from { transform: translateX(-50%) translateY(100px); opacity: 0; }
-  to { transform: translateX(-50%) translateY(0); opacity: 1; }
+  from {
+    transform: translateX(-50%) translateY(100px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
 }
 
 .split-action-group button {
@@ -373,8 +389,15 @@ button.danger:hover {
 }
 
 @keyframes slideUp {
-  from { transform: translate(-50%, 100%); opacity: 0; }
-  to { transform: translate(-50%, 0); opacity: 1; }
+  from {
+    transform: translate(-50%, 100%);
+    opacity: 0;
+  }
+
+  to {
+    transform: translate(-50%, 0);
+    opacity: 1;
+  }
 }
 
 /* Empty State / Hidden Elements */
@@ -431,7 +454,8 @@ button.danger:hover {
     overflow: visible;
   }
 
-  .toolbar, .hint-box {
+  .toolbar,
+  .hint-box {
     display: none !important;
   }
 
@@ -468,8 +492,13 @@ button.danger:hover {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 .modal-content {
@@ -560,7 +589,7 @@ button.danger:hover {
   cursor: move;
   z-index: 50;
   border: 1px dashed #cbd5e1;
-  background: rgba(255,255,255,0.8);
+  background: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(4px);
   user-select: none;
 }

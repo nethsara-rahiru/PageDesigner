@@ -1,3 +1,5 @@
+/* Nethsara Rahiru */
+
 // --- State & Constants ---
 let pageCount = 0;
 let selectedElement = null;
@@ -32,7 +34,7 @@ function initializeWorkspace() {
     createNewPage();
     applyMargins();
     setFigureAction('select'); // Start with select tool
-    
+
     // Initialize zoom
     const zoomRange = document.getElementById('zoomRange');
     zoomRange?.addEventListener('input', (e) => {
@@ -327,11 +329,11 @@ function setFigureAction(action) {
     currentFigureAction = action;
     figureClickStack = [];
     drawingInBox = null;
-    
+
     // Clear all previews and temporary markers
     document.querySelectorAll('.figure-box svg .geo-preview').forEach(p => p.setAttribute('d', ''));
     document.querySelectorAll('.temp-point').forEach(p => p.remove());
-    
+
     // Active UI feedback
     document.querySelectorAll('.geo-tool').forEach(b => {
         const onclick = b.getAttribute('onclick') || '';
@@ -342,7 +344,7 @@ function setFigureAction(action) {
 
     // Cursor feedback
     document.body.style.cursor = action === 'select' ? 'default' : 'crosshair';
-    
+
     showToast(`Geometry Tool: ${action.toUpperCase()}`, '📏');
 }
 
@@ -351,7 +353,7 @@ function createFigureBox(x, y) {
     box.className = 'figure-box' + (gridSnapEnabled ? ' show-grid' : '');
     box.style.left = `${x}px`;
     box.style.top = `${y}px`;
-    box.style.width = '200px'; 
+    box.style.width = '200px';
     box.style.height = '200px';
 
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -359,16 +361,16 @@ function createFigureBox(x, y) {
     svg.setAttribute('height', '200');
     svg.setAttribute('viewBox', '0 0 200 200');
     svg.setAttribute('preserveAspectRatio', 'none');
-    
+
     // Preview Layer
     const preview = document.createElementNS("http://www.w3.org/2000/svg", "path");
     preview.setAttribute('class', 'geo-preview');
     svg.appendChild(preview);
-    
+
     box.appendChild(svg);
 
     box.addEventListener('mousedown', (e) => {
-        if (figureModeActive || e.target.classList.contains('math-label')) return; 
+        if (figureModeActive || e.target.classList.contains('math-label')) return;
         startDrag(e);
     });
 
@@ -378,7 +380,7 @@ function createFigureBox(x, y) {
         const scale = currentZoom / 100;
         const mx = snapCoord((e.clientX - rect.left) / scale);
         const my = snapCoord((e.clientY - rect.top) / scale);
-        updateGeoPreview(preview, figureClickStack, {x: mx, y: my});
+        updateGeoPreview(preview, figureClickStack, { x: mx, y: my });
     });
 
     box.addEventListener('click', (e) => {
@@ -417,7 +419,7 @@ function updateGeoPreview(preview, stack, mouse) {
             break;
         case 'circle':
             const r = Math.sqrt(Math.pow(mouse.x - p1.x, 2) + Math.pow(mouse.y - p1.y, 2));
-            d = `M ${p1.x} ${p1.y-r} a ${r} ${r} 0 1 1 0 ${2*r} a ${r} ${r} 0 1 1 0 ${-2*r}`;
+            d = `M ${p1.x} ${p1.y - r} a ${r} ${r} 0 1 1 0 ${2 * r} a ${r} ${r} 0 1 1 0 ${-2 * r}`;
             break;
         case 'triangle':
             if (stack.length === 1) {
@@ -431,7 +433,7 @@ function updateGeoPreview(preview, stack, mouse) {
 }
 
 function handleFigureCanvasClick(e, box, svg) {
-    if (e.target.classList.contains('math-label')) return; 
+    if (e.target.classList.contains('math-label')) return;
 
     // Safety: Reset stack if user switches to a different drawing box mid-way
     if (drawingInBox && drawingInBox !== box) {
@@ -506,7 +508,7 @@ function drawGeoPoint(svg, x, y) {
 async function handlePdfUpload(file) {
     if (!file) return;
     showToast('Loading PDF...', '⏳');
-    
+
     try {
         const arrayBuffer = await file.arrayBuffer();
         currentPdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
@@ -532,26 +534,26 @@ function closePdfModal() {
 async function renderPdfThumbnails() {
     const grid = document.getElementById('pdfPreviewGrid');
     grid.innerHTML = '';
-    
+
     for (let i = 1; i <= currentPdfDoc.numPages; i++) {
         const page = await currentPdfDoc.getPage(i);
         const viewport = page.getViewport({ scale: 0.5 });
-        
+
         const card = document.createElement('div');
         card.className = 'pdf-page-card';
         card.innerHTML = `
             <span class="page-badge">Page ${i}</span>
             <div class="selection-marker">✓</div>
         `;
-        
+
         const canvas = document.createElement('canvas');
         canvas.width = viewport.width;
         canvas.height = viewport.height;
         const context = canvas.getContext('2d');
-        
+
         await page.render({ canvasContext: context, viewport }).promise;
         card.prepend(canvas);
-        
+
         card.onclick = () => togglePdfPageSelection(i, card);
         grid.appendChild(card);
     }
@@ -576,36 +578,36 @@ function updatePdfInsertBtn() {
 }
 
 async function insertSelectedPdfPages() {
-    const sortedPages = Array.from(selectedPdfPages).sort((a,b) => a - b);
+    const sortedPages = Array.from(selectedPdfPages).sort((a, b) => a - b);
     showToast(`Inserting ${sortedPages.length} PDF pages...`, '⏳');
-    
+
     closePdfModal();
-    
+
     for (const pageNum of sortedPages) {
         try {
             const page = await currentPdfDoc.getPage(pageNum);
             const viewport = page.getViewport({ scale: 2.0 });
-            
+
             const canvas = document.createElement('canvas');
             canvas.width = viewport.width;
             canvas.height = viewport.height;
             const context = canvas.getContext('2d');
-            
+
             await page.render({ canvasContext: context, viewport }).promise;
-            
+
             // Sequential await for insertion
             await new Promise((resolve) => {
                 canvas.toBlob((blob) => {
                     addImageToPaper(blob).then(resolve);
                 }, 'image/png');
             });
-            
+
             showToast(`Inserted page ${pageNum}`, '✅');
         } catch (err) {
             console.error('PDF Insertion Error:', err);
         }
     }
-    
+
     currentPdfDoc = null;
     showToast(`PDF Import Complete`, '📚');
 }
@@ -682,29 +684,29 @@ function add3DAsset(type) {
     if (type === 'cube') {
         const x = 50, y = 70, s = 80, d = 30; // Centered for 200x200
         // Back
-        drawGeoRect(svg, {x: x+d, y: y-d}, {x: x+d+s, y: y-d+s});
+        drawGeoRect(svg, { x: x + d, y: y - d }, { x: x + d + s, y: y - d + s });
         // Connectors
-        drawGeoLine(svg, {x, y}, {x: x+d, y: y-d});
-        drawGeoLine(svg, {x: x+s, y}, {x: x+s+d, y: y-d});
-        drawGeoLine(svg, {x, y: y+s}, {x: x+d, y: y-d+s});
-        drawGeoLine(svg, {x: x+s, y: y+s}, {x: x+s+d, y: y-d+s});
+        drawGeoLine(svg, { x, y }, { x: x + d, y: y - d });
+        drawGeoLine(svg, { x: x + s, y }, { x: x + s + d, y: y - d });
+        drawGeoLine(svg, { x, y: y + s }, { x: x + d, y: y - d + s });
+        drawGeoLine(svg, { x: x + s, y: y + s }, { x: x + s + d, y: y - d + s });
         // Front
-        drawGeoRect(svg, {x, y}, {x: x+s, y: y+s});
+        drawGeoRect(svg, { x, y }, { x: x + s, y: y + s });
     } else if (type === 'cylinder') {
         const x = 100, y = 50, w = 100, h = 100; // Centered
         // Sides
-        drawGeoLine(svg, {x: x-w/2, y}, {x: x-w/2, y: y+h});
-        drawGeoLine(svg, {x: x+w/2, y}, {x: x+w/2, y: y+h});
+        drawGeoLine(svg, { x: x - w / 2, y }, { x: x - w / 2, y: y + h });
+        drawGeoLine(svg, { x: x + w / 2, y }, { x: x + w / 2, y: y + h });
         // Top ellipse
         const top = document.createElementNS("http://www.w3.org/2000/svg", "ellipse");
         top.setAttribute("cx", x); top.setAttribute("cy", y);
-        top.setAttribute("rx", w/2); top.setAttribute("ry", 20);
+        top.setAttribute("rx", w / 2); top.setAttribute("ry", 20);
         top.setAttribute("class", "geo-shape");
         svg.appendChild(top);
         // Bottom ellipse
         const btm = document.createElementNS("http://www.w3.org/2000/svg", "ellipse");
-        btm.setAttribute("cx", x); btm.setAttribute("cy", y+h);
-        btm.setAttribute("rx", w/2); btm.setAttribute("ry", 20);
+        btm.setAttribute("cx", x); btm.setAttribute("cy", y + h);
+        btm.setAttribute("rx", w / 2); btm.setAttribute("ry", 20);
         btm.setAttribute("class", "geo-shape");
         svg.appendChild(btm);
     }
@@ -854,11 +856,11 @@ function closeAllTools() {
     document.getElementById('imageTools').classList.add('hidden');
     document.getElementById('figureTools').classList.add('hidden');
     document.getElementById('mainTools').classList.remove('hidden');
-    
+
     // Cleanup temporary states
     figureClickStack = [];
     document.querySelectorAll('.figure-box svg .geo-preview').forEach(p => p.setAttribute('d', ''));
-    
+
     if (selectedElement) {
         selectedElement.classList.remove('selected');
         selectedElement = null;
@@ -914,14 +916,14 @@ function getAutoCropRect(imageObj) {
     canvas.width = w;
     canvas.height = h;
     ctx.drawImage(imageObj, 0, 0, w, h);
-    
+
     let imageData;
     try {
         imageData = ctx.getImageData(0, 0, w, h);
     } catch (e) {
         return { left: 0, top: 0, width: w, height: h }; // CORS issue fallback
     }
-    
+
     const data = imageData.data;
     let minX = w, minY = h, maxX = 0, maxY = 0;
     const threshold = 245; // Below this is considered "content" (not white)
@@ -1144,7 +1146,7 @@ async function executeSplit(img, line, container) {
             const parent = container.parentElement;
             const insertBefore = container.nextSibling;
             container.remove();
-            
+
             // Remove the original image from the flow array
             if (originalIndex !== -1) {
                 flowAssetsOrder.splice(originalIndex, 1);
@@ -1157,7 +1159,7 @@ async function executeSplit(img, line, container) {
                     if (originalIndex !== -1) {
                         const idx1 = flowAssetsOrder.indexOf(newImg1);
                         if (idx1 !== -1) flowAssetsOrder.splice(idx1, 1);
-                        
+
                         const idx2 = flowAssetsOrder.indexOf(newImg2);
                         if (idx2 !== -1) flowAssetsOrder.splice(idx2, 1);
 
@@ -1167,7 +1169,7 @@ async function executeSplit(img, line, container) {
 
                     isSplitting = false;
                     showToast('Image successfully split!', '🎊');
-                    revalidateAssetPosition(); 
+                    revalidateAssetPosition();
                 });
             });
         });
@@ -1197,38 +1199,38 @@ function createSplitPart(img, y, height) {
 // --- Event Listeners ---
 function setupGlobalListeners() {
     // Canvas Clicks
-paperContainer.addEventListener('click', (e) => {
-    if (textModeActive || figureModeActive) {
-        const page = e.target.closest('.page-content');
-        if (page) {
-            const rect = page.getBoundingClientRect();
-            const scale = currentZoom / 100;
-            const x = (e.clientX - rect.left) / scale;
-            const y = (e.clientY - rect.top) / scale;
+    paperContainer.addEventListener('click', (e) => {
+        if (textModeActive || figureModeActive) {
+            const page = e.target.closest('.page-content');
+            if (page) {
+                const rect = page.getBoundingClientRect();
+                const scale = currentZoom / 100;
+                const x = (e.clientX - rect.left) / scale;
+                const y = (e.clientY - rect.top) / scale;
 
-            if (textModeActive) {
-                const box = createTextBox(x, y);
-                page.appendChild(box);
-                textModeActive = false;
-                document.getElementById('addTextBtn').innerText = '✨ Add Dynamic Text';
-                document.getElementById('addTextBtn').classList.remove('secondary');
-                setTimeout(() => box.focus(), 10);
-                selectElement(box);
-            } else if (figureModeActive) {
-                const box = createFigureBox(x, y);
-                page.appendChild(box);
-                figureModeActive = false;
-                const btn = document.querySelector('button[onclick="activateFigureMode()"]');
-                if (btn) {
-                    btn.innerText = '📐 Add Math Figure';
-                    btn.classList.remove('secondary');
+                if (textModeActive) {
+                    const box = createTextBox(x, y);
+                    page.appendChild(box);
+                    textModeActive = false;
+                    document.getElementById('addTextBtn').innerText = '✨ Add Dynamic Text';
+                    document.getElementById('addTextBtn').classList.remove('secondary');
+                    setTimeout(() => box.focus(), 10);
+                    selectElement(box);
+                } else if (figureModeActive) {
+                    const box = createFigureBox(x, y);
+                    page.appendChild(box);
+                    figureModeActive = false;
+                    const btn = document.querySelector('button[onclick="activateFigureMode()"]');
+                    if (btn) {
+                        btn.innerText = '📐 Add Math Figure';
+                        btn.classList.remove('secondary');
+                    }
+                    selectElement(box);
                 }
-                selectElement(box);
-            }
 
-            document.body.style.cursor = 'default';
-        }
-    } else {
+                document.body.style.cursor = 'default';
+            }
+        } else {
             // Deselect if clicking background
             if (e.target === paperContainer) closeAllTools();
         }
