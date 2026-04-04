@@ -1,87 +1,281 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8" />
-  <title>PageDesigner V2</title>
-  <link rel="stylesheet" href="style.css" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PageDesigner Pro | Creative Document Architect</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" />
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
 </head>
+
 <body>
-  <div class="layout">
-    <!-- Left: Paper container to hold A4 pages -->
-    <div id="paperContainer"></div>
+    <div class="layout">
+        <aside class="toolbar">
+            <header>
+                <h2><span>🎨</span> PageDesigner Pro</h2>
+            </header>
 
-    <!-- Right: Toolbar container -->
-    <div class="toolbar">
-      <div id="mainTools">
-        <!-- Existing tools -->
-        <div class="tool-group">
-          <label for="pageNumberInput">Page Number (First Page):</label>
-          <input type="text" id="pageNumberInput" maxlength="3" placeholder="e.g. 01" />
-        </div>
-        <div class="tool-group">    
-          <label id="header">📌 Upload Heading:</label>
-          <input type="file" id="headingUpload" accept="image/*" />
-        </div>
-        <div class="tool-group">
-          <label>📎 Upload Questions:</label>
-          <input type="file" id="questionUpload" accept="image/*" multiple />
-        </div>
-        <div class="tool-group">
-          <label>📐 Margins (mm):</label>
-          <label>Top: <input type="number" id="marginTop" value="0" /></label>
-          <label>Bottom: <input type="number" id="marginBottom" value="0" /></label>
-          <label>Left: <input type="number" id="marginLeft" value="10" /></label>
-          <label>Right: <input type="number" id="marginRight" value="10" /></label>
-          <button onclick="applyMargins()">Apply Margins</button>
-        </div>
-        <div class="tool-group">
-          <button onclick="activateTextMode()">➕ Add Text</button>
-        </div>
-        <div class="tool-group">
-          <button onclick="window.print()">🖨️ Print</button>
-        </div>
-      </div>
+            <div id="mainTools">
+                <section class="tool-group">
+                    <label>🖼️ Media Assets</label>
+                    <div class="upload-btn">
+                        <button class="secondary">📤 Upload Heading</button>
+                        <input type="file" id="headingUpload" accept="image/*" />
+                    </div>
+                    <div class="upload-btn">
+                        <button class="secondary">📚 Upload Questions</button>
+                        <input type="file" id="questionUpload" accept="image/*" multiple />
+                    </div>
+                    <div class="upload-btn" style="margin-top: 8px;">
+                        <button class="secondary">📄 Import PDF Files</button>
+                        <input type="file" id="pdfUpload" accept=".pdf" />
+                    </div>
+                </section>
 
-      <div id="textTools" style="display:none;">
-  <h3>✏️ Text Settings</h3>
+                <section class="tool-group">
+                    <label>📐 Document Margins</label>
+                    <div class="tool-row">
+                        <div class="input-with-unit">
+                            <input type="number" id="marginTop" value="10" />
+                            <span>Top</span>
+                        </div>
+                        <div class="input-with-unit">
+                            <input type="number" id="marginBottom" value="25" />
+                            <span>Btm</span>
+                        </div>
+                    </div>
+                    <div class="tool-row">
+                        <div class="input-with-unit">
+                            <input type="number" id="marginLeft" value="10" />
+                            <span>Lft</span>
+                        </div>
+                        <div class="input-with-unit">
+                            <input type="number" id="marginRight" value="10" />
+                            <span>Rgt</span>
+                        </div>
+                    </div>
+                    <button onclick="applyMargins()">Apply Layout</button>
+                </section>
 
-  <div class="tool-group">
-    <label>X (mm): <input type="number" id="textPosX" step="1" /></label>
-  </div>
-  <div class="tool-group">
-    <label>Y (mm): <input type="number" id="textPosY" step="1" /></label>
-  </div>
-  <div class="tool-group">
-      <label>Background Color:
-        <input type="color" id="bgColorPicker" />
-      </label>
-      <label><input type="checkbox" id="bgTransparent" /> Transparent</label>
-  </div>
-  <div class="tool-group">
-    <label>Font Size: <input type="number" id="textFontSize" value="14" /></label>
-  </div>
-  <div class="tool-group">
-    <label>Color: <input type="color" id="textColor" value="#000000" /></label>
-  </div>
-  <div class="tool-group">
-    <label><input type="checkbox" id="textBold" /> Bold</label>
-  </div>
-  <div class="tool-group">
-    <button onclick="deleteSelectedText()">🗑️ Delete Text</button>
-  </div>
-  <div class="tool-group">
-    <button onclick="closeTextTools()">✖️ Close Text Edit</button>
-  </div>
-</div>
+                <section class="tool-group">
+                    <label>🛠️ Workspace Controls</label>
+                    <button id="addTextBtn" onclick="activateTextMode()">✨ Add Dynamic Text</button>
+                    <button class="secondary" onclick="addManualQuestion()">✍️ Add Manual Question</button>
+                    <button class="secondary" onclick="activateFigureMode()">📐 Add Math Figure</button>
+                    <button class="secondary" onclick="window.print()">🖨️ Export to PDF</button>
+                </section>
 
-      </div>
+                <section class="tool-group">
+                    <label>🔍 Workspace Zoom</label>
+                    <input type="range" id="zoomRange" min="50" max="150" value="100" step="10" />
+                    <button class="secondary" onclick="resetZoom()">Reset Zoom</button>
+                </section>
+            </div>
+
+            <!-- Image Edit Panel (Hidden by default) -->
+            <div id="imageTools" class="hidden">
+                <header>
+                    <h2><span>🖼️</span> Image Designer</h2>
+                </header>
+                <section class="tool-group">
+                    <label>🛠️ Image Actions</label>
+                    <div class="tool-row" style="flex-direction: column; align-items: flex-start;">
+                        <label style="font-size: 0.75rem; color: var(--text-muted);">Scale to Width</label>
+                        <input type="range" id="imgWidthRange" min="10" max="100" value="100" style="width: 100%;" />
+                    </div>
+                    <div class="tool-row" style="flex-direction: column; align-items: flex-start;">
+                        <label style="font-size: 0.75rem; color: var(--text-muted);">Internal Gap (mm)</label>
+                        <input type="range" id="imgGapRange" min="0" max="50" value="5" style="width: 100%;" />
+                    </div>
+                    <button onclick="startCropping()">✂️ Crop Selected Image</button>
+                    <button onclick="prepareSplit()">🔪 Split Image</button>
+                    <button class="danger" onclick="deleteSelectedElement()">🗑️ Remove Image</button>
+                    <button class="secondary" onclick="closeImageTools()">✅ Finish Editing</button>
+                </section>
+            </div>
+
+            <!-- Text Edit Panel (Hidden by default) -->
+            <div id="textTools" class="hidden">
+                <header>
+                    <h2><span>✏️</span> Text Designer</h2>
+                </header>
+
+                <section class="tool-group">
+                    <label>📍 Position & Size</label>
+                    <div class="tool-row">
+                        <div class="input-with-unit">
+                            <input type="number" id="textPosX" step="1" />
+                            <span>X (px)</span>
+                        </div>
+                        <div class="input-with-unit">
+                            <input type="number" id="textPosY" step="1" />
+                            <span>Y (px)</span>
+                        </div>
+                    </div>
+                    <div class="tool-row">
+                        <div class="input-with-unit">
+                            <input type="number" id="textWidth" min="10" step="1" />
+                            <span>W (px)</span>
+                        </div>
+                        <div class="input-with-unit">
+                            <input type="number" id="textHeight" min="10" step="1" />
+                            <span>H (px)</span>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="tool-group">
+                    <label>🎨 Appearance & Borders</label>
+                    <div class="tool-row">
+                        <div>
+                            <label>Text</label>
+                            <input type="color" id="textColor" value="#000000" />
+                        </div>
+                        <div>
+                            <label>Back</label>
+                            <input type="color" id="bgColorPicker" value="#ffffff" />
+                        </div>
+                    </div>
+                    <div class="tool-row">
+                        <div>
+                            <label>Border</label>
+                            <input type="color" id="borderColorPicker" value="#cccccc" />
+                        </div>
+                        <div class="input-with-unit">
+                            <input type="number" id="borderWidth" min="0" value="0" />
+                            <span>Bwd</span>
+                        </div>
+                    </div>
+                    <label>
+                        <input type="checkbox" id="bgTransparent" /> Transparent Background
+                    </label>
+                </section>
+
+                <section class="tool-group">
+                    <label>🔡 Typography & Spacing</label>
+                    <div class="tool-row">
+                        <div class="input-with-unit">
+                            <input type="number" id="textFontSize" value="14" />
+                            <span>Size</span>
+                        </div>
+                        <div class="input-with-unit">
+                            <input type="number" id="textPadding" min="0" value="4" />
+                            <span>Pad</span>
+                        </div>
+                    </div>
+                    <label>
+                        <input type="checkbox" id="textBold" /> Ultra Bold weight
+                    </label>
+                </section>
+
+                <section class="tool-group">
+                    <button class="danger" onclick="deleteSelectedElement()">🗑️ Remove Element</button>
+                    <button class="secondary" onclick="closeAllTools()">✅ Finish Editing</button>
+                </section>
+            </div>
+
+            <!-- Figure Edit Panel (Hidden by default) -->
+            <div id="figureTools" class="hidden">
+                <header>
+                    <h2><span>📐</span> Geometry Designer</h2>
+                </header>
+                <section class="tool-group">
+                    <label>🟦 Basic Shapes</label>
+                    <div class="tool-row" style="margin-bottom: 8px;">
+                        <button class="geo-tool primary" onclick="setFigureAction('select')">🖱️ Select / Move</button>
+                    </div>
+                    <div class="tool-row">
+                        <button class="geo-tool" onclick="setFigureAction('line')">📏 Line</button>
+                        <button class="geo-tool" onclick="setFigureAction('rect')">▭ Rect</button>
+                    </div>
+                    <div class="tool-row">
+                        <button class="geo-tool" onclick="setFigureAction('triangle')">∆ Tri</button>
+                        <button class="geo-tool" onclick="setFigureAction('circle')">○ Circle</button>
+                    </div>
+                </section>
+                <section class="tool-group">
+                    <label>🧊 3D Templates</label>
+                    <div class="tool-row">
+                        <button onclick="add3DAsset('cube')">📦 Cube</button>
+                        <button onclick="add3DAsset('cylinder')">🛢️ Cyl</button>
+                    </div>
+                </section>
+                <section class="tool-group">
+                    <label>🏷️ Measurements</label>
+                    <button class="geo-tool" onclick="setFigureAction('label')">📏 Add Length</button>
+                    <button class="geo-tool" onclick="setFigureAction('angle')">📐 Add Angle</button>
+                    <div class="tool-row" style="margin-top: 10px;">
+                        <input type="checkbox" id="showAllMeasures" checked onchange="toggleMeasures(this.checked)">
+                        <label for="showAllMeasures">Show All Measurements</label>
+                    </div>
+                </section>
+                <section class="tool-group" style="margin-top: auto;">
+                    <div class="tool-row" style="margin-bottom: 8px;">
+                        <input type="checkbox" id="gridSnap" onchange="toggleGridSnap(this.checked)">
+                        <label for="gridSnap">📏 Snap to Grid (5px)</label>
+                    </div>
+                    <button class="secondary" onclick="clearFigureCanvas()">✨ Clear Canvas</button>
+                    <button class="danger" onclick="deleteSelectedElement()">🗑️ Remove Figure</button>
+                    <button class="secondary" onclick="closeAllTools()">✅ Finish Drawing</button>
+                </section>
+            </div>
+        </aside>
+
+        <main id="paperContainer">
+            <!-- Pages will be injected here -->
+        </main>
     </div>
 
-    <div id="textHint" class="hint-box" style="display: none;">
-      📌 Click on a page to place your text.
+    <!-- Cropper Modal -->
+    <div id="cropperModal" class="modal hidden">
+        <div class="modal-content">
+            <header class="modal-header">
+                <h3>✂️ Crop Workspace</h3>
+                <button class="close-btn" onclick="closeCropper()">✕</button>
+            </header>
+            <div class="cropper-container">
+                <img id="cropperImage" src="" />
+            </div>
+            <footer class="modal-footer">
+                <button class="secondary" onclick="closeCropper()">Cancel</button>
+                <button onclick="applyCrop()">Apply & Save Crop</button>
+            </footer>
+        </div>
     </div>
 
-    
-  <script src="script.js"></script>
+    <!-- PDF Page Selector Modal -->
+    <div id="pdfModal" class="modal hidden">
+        <div class="modal-content" style="max-width: 900px; height: 80vh;">
+            <header class="modal-header">
+                <h3>📖 Select PDF Pages to Insert</h3>
+                <button class="close-btn" onclick="closePdfModal()">✕</button>
+            </header>
+            <div id="pdfPreviewGrid" class="pdf-grid">
+                <!-- Page previews injected by JS -->
+                <div class="loading-state">
+                    <span>⏳ Preparing PDF previews...</span>
+                </div>
+            </div>
+            <footer class="modal-footer">
+                <button class="secondary" onclick="closePdfModal()">Cancel</button>
+                <button onclick="insertSelectedPdfPages()" id="insertPdfBtn" disabled>Insert 0 Selected Pages</button>
+            </footer>
+        </div>
+    </div>
+
+    <!-- UI Feedback Toast -->
+    <div id="statusToast" class="hint-box hidden">
+        <span id="statusIcon">ℹ️</span>
+        <span id="statusText">Ready</span>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+    <script src="script.js"></script>
 </body>
+
 </html>

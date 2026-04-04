@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart PDF Watermark Eraser</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-gradient-start: #0f172a;
+            --bg-gradient-end: #1e1b4b;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --card-border: rgba(255, 255, 255, 0.1);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-color: #6366f1;
+            --accent-hover: #4f46e5;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end));
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+            padding: 2rem 0;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1100px;
+            padding: 0 2rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(to right, #818cf8, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+        }
+
+        .upload-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 24px;
+            padding: 3rem 2rem;
+            text-align: center;
+            backdrop-filter: blur(16px);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        .upload-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 1.5rem;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(192, 132, 252, 0.2));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #818cf8;
+        }
+
+        .upload-text {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .upload-subtext {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            margin-bottom: 2rem;
+        }
+
+        .btn {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn:hover {
+            background: var(--accent-hover);
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: var(--success-color);
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-success:hover {
+            background: #059669;
+        }
+
+        /* Workspace */
+        #workspace {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            margin-top: 2rem;
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 1rem;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            padding: 1rem 2rem;
+            border-radius: 16px;
+            margin-bottom: 1.5rem;
+            align-items: center;
+            backdrop-filter: blur(16px);
+            width: 100%;
+            justify-content: space-between;
+            position: sticky;
+            top: 1rem;
+            /* Sticks slightly offset from top */
+            z-index: 100;
+            /* Stays above canvases */
+        }
+
+        .tool-group {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .tool-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .slider {
+            accent-color: var(--accent-color);
+        }
+
+        #pages-container {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            width: 100%;
+            align-items: center;
+        }
+
+        .canvas-container {
+            position: relative;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            border: 2px solid var(--accent-color);
+            cursor: none;
+            /* custom cursor mapped to overlay */
+        }
+
+        .pdf-canvas {
+            width: 100% !important;
+            height: auto !important;
+            display: block;
+            border-radius: 6px;
+        }
+
+        .overlay-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100% !important;
+            height: 100% !important;
+            pointer-events: all;
+            border-radius: 6px;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(15, 23, 42, 0.9);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            z-index: 999;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-left-color: var(--accent-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <header class="header">
+            <h1>Smart Watermark Eraser</h1>
+            <p>Automatically cleanse your entire document with smart pixel targeting, preserving all high-contrast
+                typography.</p>
+        </header>
+
+        <!-- Upload View -->
+        <div id="upload-view" class="upload-card">
+            <div class="upload-icon">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="40">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12">
+                    </path>
+                </svg>
+            </div>
+            <h2 class="upload-text">Upload PDF Document</h2>
+            <p class="upload-subtext">We'll render all pages securely to prepare them for cleaning.</p>
+            <input type="file" id="file-input" accept="application/pdf" style="display:none">
+            <button class="btn" onclick="document.getElementById('file-input').click()">Browse PDF</button>
+        </div>
+
+        <!-- Editor Workspace -->
+        <div id="workspace">
+            <div class="toolbar">
+                <div class="tool-group">
+                    <div class="tool-label">Brush Size: <span id="size-val">30</span>px</div>
+                    <input type="range" id="brush-size" class="slider" min="5" max="100" value="30">
+                </div>
+
+                <div class="tool-group">
+                    <div class="tool-label" style="width: 320px; display: inline-block;">Text Protection: <span
+                            id="protect-val">Max Protection (Leaves shadows)</span></div>
+                    <input type="range" id="text-protection" class="slider"
+                        title="Lower this if it's erasing too much text" min="40" max="200" value="200">
+                </div>
+
+                <div class="tool-group">
+                    <button class="btn" style="background:#10b981;" onclick="applyAutoRemove()">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="18">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                        </svg>
+                        Auto Clean Document
+                    </button>
+                    <button class="btn btn-success" onclick="exportPDF()" style="background: var(--accent-color);">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="18">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                        </svg>
+                        Download PDF
+                    </button>
+                    <button class="btn" style="background:#ef4444; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);"
+                        onclick="resetSession()">Close</button>
+                </div>
+            </div>
+
+            <!-- Scrollable container holding all pages at once -->
+            <div id="pages-container"></div>
+
+            <p style="color: var(--text-secondary); margin-top: 20px; font-size: 0.9rem; margin-bottom: 50px;">
+                Note: Manual erasing and auto-cleaning converts all pages to optimized raster images.
+            </p>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading" class="loading-overlay">
+        <div class="spinner"></div>
+        <h2 style="margin-top: 1rem; font-size: 1.2rem;" id="loading-msg">Processing...</h2>
+    </div>
+
+    <!-- Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+
+        let pdfDoc = null;
+        let pagesData = []; // Resolves all { pCanv, oCanv, pCtx, oCtx } objects
+        let currentScale = 2.0;
+
+        let brushRadius = parseInt(document.getElementById('brush-size').value);
+        let luminanceThreshold = parseInt(document.getElementById('text-protection').value);
+
+        // UI Binding
+        document.getElementById('brush-size').addEventListener('input', (e) => {
+            brushRadius = parseInt(e.target.value);
+            document.getElementById('size-val').textContent = brushRadius;
+        });
+
+        document.getElementById('text-protection').addEventListener('input', (e) => {
+            luminanceThreshold = parseInt(e.target.value);
+            let label = "Normal";
+            if (luminanceThreshold < 80) label = "Max Protection (Leaves shadows)";
+            if (luminanceThreshold > 150) label = "Aggressive (Might clip text)";
+            document.getElementById('protect-val').textContent = label;
+        });
+
+        document.getElementById('file-input').addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                loadPDF(e.target.files[0]);
+            }
+        });
+
+        function resetSession() {
+            document.getElementById('workspace').style.display = 'none';
+            document.getElementById('upload-view').style.display = 'block';
+            document.getElementById('file-input').value = '';
+            pdfDoc = null;
+            pagesData = [];
+            document.getElementById('pages-container').innerHTML = '';
+        }
+
+        function showLoading(show, msg = "Processing...") {
+            document.getElementById('loading-msg').textContent = msg;
+            document.getElementById('loading').style.display = show ? 'flex' : 'none';
+        }
+
+        async function loadPDF(file) {
+            showLoading(true, "Loading Document...");
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                pdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+
+                document.getElementById('upload-view').style.display = 'none';
+                document.getElementById('workspace').style.display = 'flex';
+
+                document.getElementById('pages-container').innerHTML = '';
+                pagesData = [];
+
+                // Render all pages
+                for (let i = 1; i <= pdfDoc.numPages; i++) {
+                    showLoading(true, `Rendering Page ${i} of ${pdfDoc.numPages}...`);
+                    await buildAndRenderPage(i);
+                }
+
+            } catch (err) {
+                alert("Could not load PDF: " + err.message);
+            }
+            showLoading(false);
+        }
+
+        async function buildAndRenderPage(num) {
+            const pageContainer = document.createElement('div');
+            pageContainer.className = 'canvas-container';
+
+            const pCanv = document.createElement('canvas');
+            pCanv.className = 'pdf-canvas';
+
+            const oCanv = document.createElement('canvas');
+            oCanv.className = 'overlay-canvas';
+
+            pageContainer.appendChild(pCanv);
+            pageContainer.appendChild(oCanv);
+            document.getElementById('pages-container').appendChild(pageContainer);
+
+            const pCtx = pCanv.getContext('2d', { willReadFrequently: true });
+            const oCtx = oCanv.getContext('2d');
+
+            const page = await pdfDoc.getPage(num);
+            const viewport = page.getViewport({ scale: currentScale });
+
+            pCanv.width = viewport.width;
+            pCanv.height = viewport.height;
+            oCanv.width = viewport.width;
+            oCanv.height = viewport.height;
+
+            const renderCtx = { canvasContext: pCtx, viewport: viewport };
+            await page.render(renderCtx).promise;
+
+            const pageInfo = { num, pCanv, oCanv, pCtx, oCtx };
+            pagesData.push(pageInfo);
+
+            setupManualEraser(pageInfo);
+        }
+
+        function setupManualEraser(pageInfo) {
+            let isDrawing = false;
+            const { pCanv, oCanv, pCtx, oCtx } = pageInfo;
+
+            oCanv.addEventListener('mousedown', (e) => { isDrawing = true; processEraser(e, pageInfo); });
+            oCanv.addEventListener('mousemove', (e) => {
+                const pos = getMousePos(e, oCanv);
+                drawCursor(oCtx, oCanv, pos.x, pos.y);
+                if (isDrawing) processEraser(e, pageInfo);
+            });
+            oCanv.addEventListener('mouseup', () => isDrawing = false);
+            oCanv.addEventListener('mouseleave', () => {
+                isDrawing = false;
+                oCtx.clearRect(0, 0, oCanv.width, oCanv.height);
+            });
+        }
+
+        function getMousePos(e, oCanv) {
+            const rect = oCanv.getBoundingClientRect();
+            const scaleX = oCanv.width / rect.width;
+            const scaleY = oCanv.height / rect.height;
+            return {
+                x: (e.clientX - rect.left) * scaleX,
+                y: (e.clientY - rect.top) * scaleY
+            };
+        }
+
+        function drawCursor(oCtx, oCanv, x, y) {
+            oCtx.clearRect(0, 0, oCanv.width, oCanv.height);
+            oCtx.beginPath();
+            oCtx.arc(x, y, brushRadius, 0, Math.PI * 2);
+            oCtx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+            oCtx.fill();
+            oCtx.lineWidth = 2;
+            oCtx.strokeStyle = '#6366f1';
+            oCtx.stroke();
+        }
+
+        function processEraser(e, pageInfo) {
+            const { pCanv, oCanv, pCtx, oCtx } = pageInfo;
+            const pos = getMousePos(e, oCanv);
+            const x = pos.x;
+            const y = pos.y;
+            const r = brushRadius;
+
+            const minX = Math.floor(Math.max(0, x - r));
+            const minY = Math.floor(Math.max(0, y - r));
+            const maxX = Math.ceil(Math.min(pCanv.width, x + r));
+            const maxY = Math.ceil(Math.min(pCanv.height, y + r));
+
+            const w = maxX - minX;
+            const h = maxY - minY;
+            if (w <= 0 || h <= 0) return;
+
+            const imgData = pCtx.getImageData(minX, minY, w, h);
+            const data = imgData.data;
+
+            for (let row = 0; row < h; row++) {
+                for (let col = 0; col < w; col++) {
+                    const px = minX + col;
+                    const py = minY + row;
+                    const distSq = (px - x) * (px - x) + (py - y) * (py - y);
+
+                    if (distSq <= r * r) {
+                        const i = (row * w + col) * 4;
+                        const luminance = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+
+                        if (luminance >= luminanceThreshold) {
+                            data[i] = 255;
+                            data[i + 1] = 255;
+                            data[i + 2] = 255;
+                            data[i + 3] = 255;
+                        }
+                    }
+                }
+            }
+            pCtx.putImageData(imgData, minX, minY);
+        }
+
+        function applyAutoRemove() {
+            showLoading(true, "Auto-Cleaning Entire Document...");
+
+            setTimeout(() => {
+                try {
+                    for (const pg of pagesData) {
+                        const { pCanv, pCtx, oCanv, oCtx } = pg;
+                        const w = pCanv.width;
+                        const h = pCanv.height;
+                        const imgData = pCtx.getImageData(0, 0, w, h);
+                        const data = imgData.data;
+
+                        for (let i = 0; i < data.length; i += 4) {
+                            const luminance = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+
+                            if (luminance >= luminanceThreshold) {
+                                data[i] = 255;
+                                data[i + 1] = 255;
+                                data[i + 2] = 255;
+                                data[i + 3] = 255;
+                            }
+                        }
+                        pCtx.putImageData(imgData, 0, 0);
+                        oCtx.clearRect(0, 0, oCanv.width, oCanv.height);
+                    }
+                } catch (e) {
+                    console.error("Auto remove failed:", e);
+                }
+                showLoading(false);
+            }, 100);
+        }
+
+        async function exportPDF() {
+            showLoading(true, "Generating Final PDF...");
+            setTimeout(() => {
+                try {
+                    const { jsPDF } = window.jspdf;
+                    let doc = null;
+
+                    for (let i = 0; i < pagesData.length; i++) {
+                        const { pCanv } = pagesData[i];
+                        const orientation = pCanv.width > pCanv.height ? 'l' : 'p';
+                        const imgData = pCanv.toDataURL('image/jpeg', 0.95);
+
+                        const pdfDimX = pCanv.width / currentScale;
+                        const pdfDimY = pCanv.height / currentScale;
+
+                        if (i === 0) {
+                            doc = new jsPDF({ orientation: orientation, unit: 'pt', format: [pdfDimX, pdfDimY] });
+                        } else {
+                            doc.addPage([pdfDimX, pdfDimY], orientation);
+                        }
+
+                        doc.addImage(imgData, 'JPEG', 0, 0, pdfDimX, pdfDimY);
+                    }
+                    doc.save(`Cleaned_Document.pdf`);
+                } catch (e) {
+                    console.error("Export Error:", e);
+                    alert("Error exporting PDF.");
+                }
+                showLoading(false);
+            }, 100);
+        }
+    </script>
+</body>
+
+</html>
