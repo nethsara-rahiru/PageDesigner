@@ -290,15 +290,33 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                         </svg>
-                        Auto Clean Document
+                        Auto Clean (Raster)
                     </button>
                     <button class="btn btn-success" onclick="exportPDF()" style="background: var(--accent-color);">
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="18">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
                         </svg>
-                        Download PDF
+                        Download (Raster)
                     </button>
+                </div>
+
+                <div class="tool-group" style="padding-left: 1rem; border-left: 1px solid var(--card-border);">
+                    <div style="display: flex; flex-direction: column; gap: 0.2rem; align-items: center;">
+                        <button class="btn" style="background:#8b5cf6;" onclick="applyNativeRemove()">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="18">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path>
+                            </svg>
+                            Vector Clean (Preserve Quality)
+                        </button>
+                        <div style="display:flex; align-items:center; gap:0.5rem; justify-content:center;">
+                            <input type="text" id="vector-text-target" placeholder="Target text (Optional)" title="If your text watermark is stubborn, enter the exact text here to delete it natively" style="padding: 0.25rem 0.5rem; font-size: 0.8rem; border-radius: 4px; border: 1px solid var(--card-border); background: rgba(255,255,255,0.1); color: #fff; outline:none;">
+                        </div>
+                        <div style="display:flex; align-items:center; gap:0.5rem; justify-content:center;">
+                            <input type="checkbox" id="vector-aggressive" style="accent-color: #8b5cf6;" title="Wipes all non-text graphics entirely">
+                            <label for="vector-aggressive" style="font-size:0.8rem; color:var(--text-secondary); cursor:help;" title="Aggressively wipe all images and form layers (might remove valid images too!)">Aggressive graphics wipe</label>
+                        </div>
+                    </div>
                     <button class="btn" style="background:#ef4444; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);"
                         onclick="resetSession()">Close</button>
                 </div>
@@ -322,13 +340,15 @@
     <!-- Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
 
     <script>
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
 
         let pdfDoc = null;
         let pagesData = []; // Resolves all { pCanv, oCanv, pCtx, oCtx } objects
-        let currentScale = 2.0;
+        let currentScale = 3.0; // Increased for high-resolution print quality
 
         let brushRadius = parseInt(document.getElementById('brush-size').value);
         let luminanceThreshold = parseInt(document.getElementById('text-protection').value);
@@ -546,7 +566,8 @@
                     for (let i = 0; i < pagesData.length; i++) {
                         const { pCanv } = pagesData[i];
                         const orientation = pCanv.width > pCanv.height ? 'l' : 'p';
-                        const imgData = pCanv.toDataURL('image/jpeg', 0.95);
+                        // 1.0 Quality JPEG on a 3.0 scale canvas creates print-perfect crispness equivalent to vector
+                        const imgData = pCanv.toDataURL('image/jpeg', 1.0);
 
                         const pdfDimX = pCanv.width / currentScale;
                         const pdfDimY = pCanv.height / currentScale;
@@ -566,6 +587,154 @@
                 }
                 showLoading(false);
             }, 100);
+        }
+        async function applyNativeRemove() {
+            showLoading(true, "Native Vector Cleaning...");
+            try {
+                const fileInput = document.getElementById('file-input');
+                if (!fileInput.files.length) return;
+                
+                const file = fileInput.files[0];
+                const arrayBuffer = await file.arrayBuffer();
+
+                const { PDFDocument, PDFName, PDFDict, PDFNumber } = PDFLib;
+                const pdfNativeDoc = await PDFDocument.load(arrayBuffer, { ignoreEncryption: true });
+                const pages = pdfNativeDoc.getPages();
+                
+                const isAggressive = document.getElementById('vector-aggressive').checked;
+
+                for (let page of pages) {
+                    try { page.node.delete(PDFName.of('Annots')); } catch(e) {}
+                    
+                    try {
+                        const res = page.node.Resources();
+                        if (res) {
+                            // 1. Transparency Stripping
+                            const extGStates = res.lookup(PDFName.of('ExtGState'), PDFDict);
+                            if (extGStates) {
+                                for (let key of extGStates.keys()) {
+                                    const stateDict = extGStates.lookup(key, PDFDict);
+                                    if (stateDict) {
+                                        const ca = stateDict.lookup(PDFName.of('ca'));
+                                        const CA = stateDict.lookup(PDFName.of('CA'));
+                                        try {
+                                            if (ca && Number(ca.toString()) < 1) stateDict.set(PDFName.of('ca'), PDFNumber.of(0));
+                                            if (CA && Number(CA.toString()) < 1) stateDict.set(PDFName.of('CA'), PDFNumber.of(0));
+                                        } catch(e) {}
+                                    }
+                                }
+                            }
+
+                            // 2. XObject Stripping (if aggressive is enabled)
+                            const xObjectDict = res.lookup(PDFName.of('XObject'), PDFDict);
+                            if (xObjectDict) {
+                                for (let k of xObjectDict.keys()) {
+                                    const nameStr = k.decodeText().toLowerCase();
+                                    const xObj = xObjectDict.lookup(k, PDFDict);
+                                    let isWatermark = false;
+
+                                    if (nameStr.includes('watermark') || nameStr.includes('wordart') || nameStr.includes('bg') || nameStr.includes('background')) {
+                                        isWatermark = true;
+                                    }
+
+                                    if (isAggressive && xObj) {
+                                        const subtype = xObj.lookup(PDFName.of('Subtype'));
+                                        if (subtype) {
+                                            const subStr = subtype.decodeText();
+                                            if (subStr === '/Form' || subStr === '/Image') {
+                                                isWatermark = true;
+                                            }
+                                        }
+                                    }
+
+                                    if (isWatermark) xObjectDict.delete(k);
+                                }
+                            }
+                        }
+                    } catch(e) {}
+
+                    // 3. Deep Content Stream Text & Artifact Scrubbing
+                    try {
+                        const targetText = document.getElementById('vector-text-target').value.trim();
+                        let contents = page.node.Contents();
+                        let streams = [];
+                        
+                        if (contents) {
+                            if (contents.constructor.name === 'PDFStream' || contents.constructor.name === 'PDFRawStream') {
+                                streams.push(contents);
+                            } else if (contents.constructor.name === 'PDFArray') {
+                                for (let i = 0; i < contents.size(); i++) {
+                                    streams.push(pdfNativeDoc.context.lookup(contents.get(i)));
+                                }
+                            }
+                        }
+
+                        for (let stream of streams) {
+                            if (!stream || !stream.contents) continue;
+                            
+                            const filter = stream.dict.lookup(PDFName.of('Filter'));
+                            const isFlate = filter && (filter === PDFName.of('FlateDecode') || filter.name === 'FlateDecode');
+                            
+                            let rawBytes = stream.contents;
+                            if (typeof rawBytes === 'function') rawBytes = rawBytes();
+                            
+                            let decoded = rawBytes;
+                            if (isFlate) {
+                                try { decoded = window.pako.inflate(rawBytes); } catch(ex) { continue; }
+                            }
+
+                            // Read as utf-8 string mapping
+                            let decStr = new TextDecoder('utf-8').decode(decoded);
+                            let originalStr = decStr;
+
+                            // Annihilate MS-Word Document Watermark artifact sequences embedded in the stream natively
+                            decStr = decStr.replace(/\/Artifact\s*<<[^>]*\/(?:Watermark|Background)[^>]*>>\s*BDC[\s\S]*?EMC/g, '');
+                            
+                            // Target explicit watermark text if user typed it
+                            if (targetText.length > 0) {
+                                const escapedTarget = targetText.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
+                                const regex = new RegExp(`\\([^\\)]*${escapedTarget}[^\\)]*\\)\\s*(Tj|TJ|'|")`, 'gi');
+                                decStr = decStr.replace(regex, '() $1');
+                            }
+
+                            if (decStr !== originalStr) {
+                                const newBytes = new TextEncoder().encode(decStr);
+                                if (isFlate) {
+                                    stream.contents = window.pako.deflate(newBytes);
+                                } else {
+                                    stream.contents = newBytes;
+                                }
+                                stream.dict.set(PDFName.of('Length'), PDFNumber.of(stream.contents.length));
+                            }
+                        }
+                    } catch(e) {
+                         console.error("Deep stream parsing failed", e);
+                    }
+                }
+
+                try { pdfNativeDoc.catalog.delete(PDFName.of('OCProperties')); } catch(e) {}
+
+                const modifiedPdfBytes = await pdfNativeDoc.save();
+                const blob = new Blob([modifiedPdfBytes], { type: 'application/pdf' });
+                const url = URL.createObjectURL(blob);
+                
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = `VectorCleaned_Document.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                
+                setTimeout(() => {
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                }, 100);
+
+            } catch(e) {
+                console.error("Native removal failed:", e);
+                alert("Vector clean failed. The file may be heavily encrypted or corrupted.");
+            }
+            showLoading(false);
         }
     </script>
 </body>
