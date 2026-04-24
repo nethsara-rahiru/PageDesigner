@@ -10,7 +10,7 @@
   --text: #f8fafc;
   --text-muted: #94a3b8;
   --border: #334155;
-  --page-bg: #f8fafc;
+  --page-bg: #ffffff;
   --toolbar-width: 320px;
   --glass-bg: rgba(30, 41, 59, 0.7);
   --glass-border: rgba(255, 255, 255, 0.1);
@@ -232,6 +232,23 @@ button.danger:hover {
   max-width: 100%;
   height: auto;
   user-select: none;
+  transition: all 0.2s ease;
+}
+
+.inserted-image {
+  cursor: pointer;
+}
+
+.inserted-image.selected {
+  outline: 4px solid var(--primary);
+  outline-offset: -4px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
+  filter: brightness(1.02);
+}
+
+.inserted-image:hover:not(.selected) {
+  outline: 2px solid var(--primary-hover);
+  outline-offset: -2px;
 }
 
 /* Manual Question Block */
@@ -249,12 +266,12 @@ button.danger:hover {
   line-height: 1.6;
   white-space: pre-wrap;
   word-break: break-word;
-  background: rgba(99, 102, 241, 0.02);
+  background: transparent;
   border-radius: 4px;
 }
 
 .manual-question:hover {
-  background: rgba(99, 102, 241, 0.05);
+  background: rgba(99, 102, 241, 0.03);
   border-color: var(--primary);
 }
 
@@ -589,7 +606,7 @@ button.danger:hover {
   cursor: move;
   z-index: 50;
   border: 1px dashed #cbd5e1;
-  background: rgba(255, 255, 255, 0.8);
+  background: transparent;
   backdrop-filter: blur(4px);
   user-select: none;
 }

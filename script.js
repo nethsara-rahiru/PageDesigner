@@ -1460,10 +1460,8 @@ function cleanupEmptyPages() {
 async function downloadFullQuality() {
     showToast('Preparing High-Quality Export...', '⏳');
 
-    // 1. Reset zoom to 100% to ensure clean capture
-    const originalZoom = currentZoom;
     const pages = document.querySelectorAll('.page');
-    pages.forEach(p => p.style.transform = 'scale(1)');
+    // We no longer reset zoom on live pages; onclone handles this for the capture engine.
 
     // 2. Load capture engines if not already loaded
     if (typeof html2canvas === 'undefined' || typeof window.jspdf === 'undefined') {
@@ -1491,16 +1489,24 @@ async function downloadFullQuality() {
         for (let i = 0; i < pages.length; i++) {
             const page = pages[i];
             
-            // Re-render each page at 3x scale for high quality (300dpi equivalent)
+            // Capture each page
             const canvas = await html2canvas(page, {
                 scale: 3, 
                 useCORS: true,
-                allowTaint: true,
                 logging: false,
-                backgroundColor: '#ffffff'
+                backgroundColor: '#ffffff',
+                onclone: (clonedDoc) => {
+                    // Find the current page in the cloned document
+                    const clonedPage = clonedDoc.querySelectorAll('.page')[i];
+                    if (clonedPage) {
+                        clonedPage.style.boxShadow = 'none';
+                        clonedPage.style.marginBottom = '0';
+                        clonedPage.style.transform = 'scale(1)'; // Ensure it's unscaled in clone
+                    }
+                }
             });
 
-            const imgData = canvas.toDataURL('image/jpeg', 1.0);
+            const imgData = canvas.toDataURL('image/png');
             
             // Page dimensions in mm (A4)
             const pageWidth = 210;
@@ -1512,7 +1518,7 @@ async function downloadFullQuality() {
                 pdf.addPage([pageWidth, pageHeight], 'p');
             }
 
-            pdf.addImage(imgData, 'JPEG', 0, 0, pageWidth, pageHeight, undefined, 'FAST');
+            pdf.addImage(imgData, 'PNG', 0, 0, pageWidth, pageHeight, undefined, 'FAST');
             
             showToast(`Processed Page ${i + 1}`, '⏳');
         }
@@ -1523,7 +1529,6 @@ async function downloadFullQuality() {
         console.error('Export Error:', err);
         showToast('High-quality export failed', '❌');
     } finally {
-        // Restore zoom
-        pages.forEach(p => p.style.transform = `scale(${originalZoom / 100})`);
+        // High-quality capture complete
     }
 }
