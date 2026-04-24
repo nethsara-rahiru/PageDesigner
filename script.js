@@ -586,7 +586,7 @@ async function insertSelectedPdfPages() {
     for (const pageNum of sortedPages) {
         try {
             const page = await currentPdfDoc.getPage(pageNum);
-            const viewport = page.getViewport({ scale: 2.0 });
+            const viewport = page.getViewport({ scale: 4.0 }); // Increased scale for high-quality rendering
 
             const canvas = document.createElement('canvas');
             canvas.width = viewport.width;
@@ -1454,4 +1454,76 @@ function cleanupEmptyPages() {
             pageCount = document.querySelectorAll('.page').length;
         }
     });
+}
+
+// --- High Quality Export / Download Logic ---
+async function downloadFullQuality() {
+    showToast('Preparing High-Quality Export...', '⏳');
+
+    // 1. Reset zoom to 100% to ensure clean capture
+    const originalZoom = currentZoom;
+    const pages = document.querySelectorAll('.page');
+    pages.forEach(p => p.style.transform = 'scale(1)');
+
+    // 2. Load capture engines if not already loaded
+    if (typeof html2canvas === 'undefined' || typeof window.jspdf === 'undefined') {
+        showToast('Loading capture engines...', '⏳');
+        
+        const loadScript = (src) => new Promise(resolve => {
+            const script = document.createElement('script');
+            script.src = src;
+            script.onload = resolve;
+            document.head.appendChild(script);
+        });
+
+        if (typeof html2canvas === 'undefined') {
+            await loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
+        }
+        if (typeof window.jspdf === 'undefined') {
+            await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
+        }
+    }
+
+    try {
+        const { jsPDF } = window.jspdf;
+        let pdf = null;
+
+        for (let i = 0; i < pages.length; i++) {
+            const page = pages[i];
+            
+            // Re-render each page at 3x scale for high quality (300dpi equivalent)
+            const canvas = await html2canvas(page, {
+                scale: 3, 
+                useCORS: true,
+                allowTaint: true,
+                logging: false,
+                backgroundColor: '#ffffff'
+            });
+
+            const imgData = canvas.toDataURL('image/jpeg', 1.0);
+            
+            // Page dimensions in mm (A4)
+            const pageWidth = 210;
+            const pageHeight = 297;
+
+            if (i === 0) {
+                pdf = new jsPDF('p', 'mm', [pageWidth, pageHeight]);
+            } else {
+                pdf.addPage([pageWidth, pageHeight], 'p');
+            }
+
+            pdf.addImage(imgData, 'JPEG', 0, 0, pageWidth, pageHeight, undefined, 'FAST');
+            
+            showToast(`Processed Page ${i + 1}`, '⏳');
+        }
+
+        pdf.save('PageDesigner_Pro_Full_Quality.pdf');
+        showToast('Download complete!', '🎉');
+    } catch (err) {
+        console.error('Export Error:', err);
+        showToast('High-quality export failed', '❌');
+    } finally {
+        // Restore zoom
+        pages.forEach(p => p.style.transform = `scale(${originalZoom / 100})`);
+    }
 }
